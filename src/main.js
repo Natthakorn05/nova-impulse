@@ -296,7 +296,20 @@
       `${me().name} · ${NI.classes.get(me().classId).name.toUpperCase()} LV ${me().level}<br>` +
       `${mate().name} · ${NI.classes.get(mate().classId).name.toUpperCase()} LV ${mate().level}<br>` +
       `TRUST: ${stage.label}<br>BATTLES WON: ${state.battlesWon}`;
+    syncSoundLabel();
     document.getElementById('overlay').hidden = false;
+  });
+
+  /* Audio preference lives in localStorage, not the save file — it belongs to
+     the device you are playing on, not to the run. */
+  function syncSoundLabel() {
+    document.getElementById('btn-sound').textContent =
+      'SOUND: ' + (NI.sfx.isMuted() ? 'OFF' : 'ON');
+  }
+  document.getElementById('btn-sound').addEventListener('click', () => {
+    NI.sfx.toggle();
+    syncSoundLabel();
+    if (!NI.sfx.isMuted()) NI.sfx.play('ui');
   });
 
   document.getElementById('btn-resume').addEventListener('click', () => {
@@ -332,6 +345,7 @@
      Boot — art index first so portraits resolve on the very first paint
      ============================================================ */
 
+  NI.sfx.init();
   NI.art.init().then(toTitle).catch(toTitle);
 
 })();

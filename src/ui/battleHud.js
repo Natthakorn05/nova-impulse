@@ -59,6 +59,10 @@ NI.hud = (function () {
        Phaser booted slower than that. */
     NI.stage.setFoes(B.foes);
 
+    /* Only bosses get the loop. If every fight had a theme it would stop
+       meaning anything, and this game has sixteen of them. */
+    if (B.isBoss) NI.sfx.startBoss();
+
     logLine('sys', `Encounter started — ${B.name}.`);
     renderAll();
     step();
@@ -430,7 +434,19 @@ NI.hud = (function () {
     };
   }
 
+  /* Event type -> sound. Kept as a table rather than scattered play() calls
+     inside the switch below, so the audio for a battle can be read in one
+     place and a silent event is obvious. `hit` picks its own cue. */
+  const SOUND = {
+    cast: 'cast', miss: 'miss', heal: 'heal', shield: 'shield', buff: 'buff',
+    status: 'status', guard: 'guard', down: 'down', enrage: 'enrage',
+    thorns: 'hit', dot: 'status', victory: 'victory', defeat: 'defeat'
+  };
+
   function handleEvent(ev) {
+    if (ev.type === 'hit') NI.sfx.play(ev.crit ? 'crit' : 'hit');
+    else if (SOUND[ev.type]) NI.sfx.play(SOUND[ev.type]);
+
     switch (ev.type) {
       case 'round':
         logLine('sys', `── Round ${ev.round} ──`);
@@ -563,6 +579,7 @@ NI.hud = (function () {
   function finish() {
     busy = true;
     hideTip();
+    NI.sfx.stopBoss();
     el.actions.innerHTML = '';
     setTimeout(showResult, 500);
   }
