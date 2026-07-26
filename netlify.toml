@@ -4,7 +4,11 @@
 # Never point `publish` at the repo root: .env lives there.
 
 [build]
-  command = "node tools/build-dist.mjs"
+  # stamp.mjs must run here, not just locally: it rewrites the ?v=<sha1> on
+  # every script and stylesheet in index.html. Relying on a committed stamp
+  # means one forgotten `npm run stamp` ships a page that points at hashes
+  # for the previous version of the code.
+  command = "node tools/stamp.mjs && node tools/build-dist.mjs"
   publish = "dist"
 
 # index.html must always be revalidated, because it carries the ?v= content
