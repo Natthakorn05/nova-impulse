@@ -89,39 +89,82 @@ function expectedDamage(unit, skill, foe, foeCount) {
   return dmg;
 }
 
+/**
+ * Is this skill a way of not dying rather than a way of winning?
+ *
+ * `heal` and `shield` are the obvious two, and for a long time they were the
+ * only two this function knew about — which meant the sim never once cast the
+ * Fighter's Guard Stance, the Tank's Cover or Fortress, or the Ranger's
+ * Phantom Step. Every class with a defensive BUFF was being played as though
+ * that half of its kit did not exist, so the game measured harder than it is,
+ * and the Ranger measured hardest of all because a buff is the only defence it
+ * has. A broken instrument looks exactly like a passing result.
+ */
+/* HP fraction at which the simulated player reaches for cover. Sweepable so
+   the number is a measurement rather than a guess: node tools/qa-balance.mjs
+   --guard 0.4 */
+const GUARD_ARG = process.argv.indexOf('--guard');
+const GUARD_AT = GUARD_ARG > 0 ? Number(process.argv[GUARD_ARG + 1]) : 0.42;
+
+function isDefensive(s) {
+  if (s.heal || s.shield || s.guardian || s.selfHeal) return true;
+  if (s.selfBuff && (s.selfBuff.def || s.selfBuff.evade)) return true;
+  if (s.allyBuff && s.allyBuff.damageTaken != null) return true;
+  return false;
+}
+
+/** Already behind something — don't spend a second turn re-buying cover. */
+function protectedAlready(u) {
+  if ((u.shield || 0) > 0) return true;
+  return (u.buffs || []).some(b => b.def || b.evade || b.damageTaken != null || b.guardian);
+}
+
 function pickAction(B, unit) {
   const foes = B.foesAlive();
   if (!foes.length) return { kind: 'guard' };
 
   const affordable = unit.skills.filter(s => (s.mp || 0) <= unit.mp);
+  const allies = B.alliesAlive();
+  const frailest = allies.slice().sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0] || unit;
 
-  /* Self-sustain first when badly hurt.
-     `shield` belongs here as much as `heal` does. Scoring only on `heal`
-     silently mis-plays any class whose survival option is a barrier — the
-     simulated Mage would buy Mirror Veil and then never once cast it, and
-     the measurement would report the fix as worthless. This is the same
-     class of instrument bug as scoring skills on raw `power`, which made the
-     Ranger read thirty points weaker than it is. */
+  /* Defence first when badly hurt. A competent player reaches for cover
+     before the hit that would end them, not after, so the threshold sits
+     above the point at which one enemy turn is lethal. */
   const hurt = unit.hp / unit.maxHp;
-  const guard = affordable.find(s =>
-    (s.heal || s.shield) && hurt < 0.45 && !(unit.cooldowns[s.id] > 0));
-  if (guard) return { kind: 'skill', skillId: guard.id, targetUid: unit.uid };
+  const partyHurt = frailest.hp / frailest.maxHp;
+
+  /* focus the weakest foe so fights actually shrink */
+  const target = foes.slice().sort((a, b) => a.hp - b.hp)[0];
+
+  /* Don't spend a turn on cover when the fight is about to end anyway —
+     that is the difference between a player and a policy. */
+  const best = affordable.slice()
+    .sort((a, b) => expectedDamage(unit, b, target, foes.length)
+                  - expectedDamage(unit, a, target, foes.length))[0]
+    || unit.skills.find(s => s.basic);
+  const closing = expectedDamage(unit, best, target, foes.length) >=
+                  foes.reduce((n, f) => n + f.hp, 0);
+
+  const guard = closing ? null : affordable.find(s => {
+    if (unit.cooldowns[s.id] > 0 || !isDefensive(s)) return false;
+    const forParty = s.target === 'ally' || s.target === 'allAllies';
+    const who = forParty ? frailest : unit;
+    if (protectedAlready(who)) return false;
+    return (forParty ? partyHurt : hurt) < GUARD_AT;
+  });
+  if (guard) {
+    const forParty = guard.target === 'ally' || guard.target === 'allAllies';
+    return { kind: 'skill', skillId: guard.id, targetUid: forParty ? frailest.uid : unit.uid };
+  }
 
   /* no MP and hurt -> guard to bank some back */
   if (hurt < 0.25 && affordable.length <= 1 && unit.mp < unit.maxMp * 0.3) {
     return { kind: 'guard' };
   }
 
-  /* focus the weakest foe so fights actually shrink */
-  const target = foes.slice().sort((a, b) => a.hp - b.hp)[0];
-
   /* Setup skills (mark, defence-down) are worth a turn on anything that will
      outlive three of them — which is what a competent player does. */
   const marked = (target.statuses || []).some(s => s.type === 'mark');
-  const best = affordable.slice()
-    .sort((a, b) => expectedDamage(unit, b, target, foes.length)
-                  - expectedDamage(unit, a, target, foes.length))[0]
-    || unit.skills.find(s => s.basic);
 
   if (!marked) {
     const setup = affordable.find(s => s.status && s.status.type === 'mark');

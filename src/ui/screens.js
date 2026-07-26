@@ -19,7 +19,7 @@ NI.screens = (function () {
      Screen switching
      ============================================================ */
 
-  const SCREENS = ['title', 'gender', 'class', 'story', 'battle', 'tree', 'chapter', 'hook'];
+  const SCREENS = ['title', 'gender', 'class', 'route', 'story', 'battle', 'tree', 'chapter', 'hook'];
 
   function show(name) {
     for (const s of SCREENS) {
@@ -138,6 +138,62 @@ NI.screens = (function () {
           <span class="cd-stat">CRIT<b>${s.crit}%</b></span>
         </div>
       </div>`;
+  }
+
+  /* ============================================================
+     Route select (§11) — who this story turns out to be about
+
+     Deliberately the last registration step, after the player knows
+     who they are playing, because the partner option only means
+     anything once you have seen whose name is in the other slot.
+     ============================================================ */
+
+  let chosenRoute = null;
+
+  function renderRouteSelect(path, onConfirm) {
+    chosenRoute = null;
+    const mate = C().lead(C().companionOf(path));
+
+    $('route-note').innerHTML =
+      `Forty thousand people went in and the ones who lasted did it in pairs. ` +
+      `Pick the person this turns out to be about — including ` +
+      `<b style="color:${mate.color}">${mate.name}</b>, who is already standing next to you. ` +
+      `<span class="rt-warn">This decides chapters 1 through 10. It cannot be changed later.</span>`;
+
+    $('route-grid').innerHTML = C().ROUTE_IDS.map(id => {
+      const p = C().routePerson(id, path);
+      const isPartner = id === 'partner';
+      const title = isPartner
+        ? 'The one who was already there'
+        : p.title;
+      const hook = isPartner
+        ? `You met ${p.name} in the first ninety seconds and never once walked into a room without ` +
+          `checking where ${p.pronouns.subj} was.`
+        : p.hook;
+      return `
+        <button class="route-card" data-id="${id}" style="--rc:${p.color}">
+          <span class="rc-art">${NI.art.figure(
+            isPartner ? p.id + '_portrait' : id + '_portrait', p.name)}</span>
+          <span class="rc-body">
+            <span class="rc-name">${p.short || p.name}</span>
+            <span class="rc-title">${title}</span>
+            <span class="rc-hook">${hook}</span>
+          </span>
+        </button>`;
+    }).join('');
+
+    $('btn-route-confirm').disabled = true;
+
+    $('route-grid').querySelectorAll('.route-card').forEach(b => {
+      b.addEventListener('click', () => {
+        chosenRoute = b.dataset.id;
+        $('route-grid').querySelectorAll('.route-card').forEach(x => x.classList.remove('sel'));
+        b.classList.add('sel');
+        $('btn-route-confirm').disabled = false;
+      });
+    });
+
+    $('btn-route-confirm').onclick = () => { if (chosenRoute) onConfirm(chosenRoute); };
   }
 
   /* ============================================================
@@ -323,7 +379,7 @@ NI.screens = (function () {
 
   return {
     show, currentScreen, toast,
-    renderTitle, renderGenderSelect, renderClassSelect,
+    renderTitle, renderGenderSelect, renderClassSelect, renderRouteSelect,
     renderChapterCard, renderStory, setChapterLabel, renderPartyStrip,
     renderHook
   };

@@ -136,6 +136,37 @@ NI.characters = (function () {
 
   const ROMANCE_IDS = Object.keys(ROMANCE);
 
+  /* ------------------------------------------------------------
+     Routes
+
+     Seven, not six: staying with the lead you arrived with is a
+     route in its own right and every chapter writes it as one. It
+     is not the "no romance" option and it is not a fallback — it
+     is the only route whose person has been beside you since the
+     first screen, and the writing leans on that.
+
+     The route is chosen during registration rather than at a
+     mid-game lock. That is the whole reason chapters 1-5 can carry
+     it: a choice made in chapter 6 cannot change chapter 2, so
+     under the old shape the first five chapters had to pretend
+     none of these people existed.
+     ------------------------------------------------------------ */
+
+  const ROUTE_IDS = ROMANCE_IDS.concat(['partner']);
+
+  /** The actual person a route points at, given who you control. */
+  function routePerson(route, path) {
+    if (route === 'partner') return LEADS[companionOf(path)];
+    return ROMANCE[route] || null;
+  }
+
+  /** Display name, honouring the short form everyone actually uses. */
+  function routeName(route, path, short) {
+    const p = routePerson(route, path);
+    if (!p) return '';
+    return (short && p.short) ? p.short : p.name;
+  }
+
   function romance(id) { return ROMANCE[id] || null; }
 
   /** Everyone the player can be in a scene with, leads included. */
@@ -189,8 +220,8 @@ NI.characters = (function () {
   }
 
   return {
-    LEADS, ROMANCE, ROMANCE_IDS,
-    lead, romance, anyone, companionOf, resolve,
+    LEADS, ROMANCE, ROMANCE_IDS, ROUTE_IDS,
+    lead, romance, anyone, companionOf, resolve, routePerson, routeName,
     trustStage, addressPlayer, TRUST_STAGES
   };
 })();

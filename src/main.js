@@ -17,7 +17,11 @@
     3: NI.story.chapter3,
     4: NI.story.chapter4,
     5: NI.story.chapter5,
-    6: NI.story.chapter6
+    6: NI.story.chapter6,
+    7: NI.story.chapter7,
+    8: NI.story.chapter8,
+    9: NI.story.chapter9,
+    10: NI.story.chapter10
   };
 
   const SAVE_KEY = 'novaImpulse.save.v1';
@@ -29,7 +33,7 @@
      State
      ============================================================ */
 
-  function freshState(gender, path, classId) {
+  function freshState(gender, path, classId, route) {
     const mateId = C().companionOf(path);
     /* Companion class is randomised (§3) — the player never picks it. */
     const mateClass = NI.classes.randomClassId(null);
@@ -49,7 +53,14 @@
       chapter: 1, beat: null,
       trust: 0, flags: {},
       battlesWon: 0, battlesLost: 0,
-      route: null,
+      /* Chosen during registration, read from chapter 1 onward. Held as its
+         own field rather than a flag because every chapter branches on it and
+         a flag would make "which route am I on" a search through the bag. */
+      route: route || 'partner',
+      /* Affection is the route's own counter, separate from `trust`, which
+         still measures the two leads. On the partner route both move — that
+         is the point of it being a route rather than an absence of one. */
+      bond: 0,
       /* Ten free pulls to open with. A gacha whose first screen is "come back
          later" teaches the player to ignore it, and an Echo in the party from
          chapter 1 is a reason to care about catching the next one. */
@@ -105,6 +116,8 @@
     if (beat.branch) {
       const hit = beat.branch.find(b => {
         if (b.flag) return !!state.flags[b.flag];
+        if (b.route) return state.route === b.route;
+        if (b.bondAtLeast != null) return (state.bond || 0) >= b.bondAtLeast;
         if (b.trustAtLeast != null) return state.trust >= b.trustAtLeast;
         if (b.path) return state.path === b.path;
         return false;
@@ -135,6 +148,11 @@
       state.trust += fx.trust;
       S().toast(`Trust +${fx.trust} — ${C().trustStage(state.trust).label}`, 'mag');
     }
+    if (fx.bond) {
+      state.bond = (state.bond || 0) + fx.bond;
+      const who = C().routeName(state.route, state.path, true);
+      S().toast(`${who.toUpperCase()} +${fx.bond} — ${C().trustStage(state.bond).label}`, 'mag');
+    }
     if (fx.xp) awardXp(fx.xp);
   }
 
@@ -146,15 +164,8 @@
 
   function takeChoice(choice) {
     if (choice.sets) state.flags[choice.sets] = true;
-    /* The chapter 6 route lock. Recorded as its own field rather than a flag
-       because everything from chapter 7 on branches on it, and a flag would
-       make "which route am I on" a search through the flag bag. */
-    if (choice.route) {
-      state.route = choice.route;
-      state.flags['route_' + choice.route] = true;
-    }
-    applyEffects({ trust: choice.trust });
-    setTimeout(() => goTo(choice.goto), choice.trust ? 380 : 0);
+    applyEffects({ trust: choice.trust, bond: choice.bond });
+    setTimeout(() => goTo(choice.goto), (choice.trust || choice.bond) ? 380 : 0);
   }
 
   function enterChapter(n) {
@@ -271,14 +282,18 @@
   function newGame() {
     S().renderGenderSelect((gender, path) => {
       S().renderClassSelect(path, classId => {
-        state = freshState(gender, path, classId);
+        S().renderRouteSelect(path, route => {
+          state = freshState(gender, path, classId, route);
 
-        const mateCls = NI.classes.get(mate().classId);
-        S().toast(`${mate().name} assigned: ${mateCls.name.toUpperCase()}`, 'mag');
-        S().toast('Skill point available', '');
+          const mateCls = NI.classes.get(mate().classId);
+          S().toast(`${mate().name} assigned: ${mateCls.name.toUpperCase()}`, 'mag');
+          S().toast(`Bond target: ${C().routeName(route, path, true).toUpperCase()}`, 'mag');
+          S().toast('Skill point available', '');
 
-        clearSave();
-        enterChapter(1);
+          clearSave();
+          enterChapter(1);
+        });
+        S().show('route');
       });
       S().show('class');
     });
@@ -289,6 +304,12 @@
     const loaded = loadSave();
     if (!loaded) return toTitle();
     state = loaded;
+
+    /* Saves written before routes moved to registration have no route and no
+       bond counter. Default them rather than refusing to load — losing a
+       playthrough to a schema change is not an acceptable trade for tidiness. */
+    if (!state.route) state.route = 'partner';
+    if (state.bond == null) state.bond = state.trust || 0;
 
     /* a save written at a battle beat resumes into that battle */
     if (state.beat && beatById(state.beat)) goTo(state.beat);
@@ -334,7 +355,10 @@
       `CHAPTER ${state.chapter}<br>` +
       `${me().name} · ${NI.classes.get(me().classId).name.toUpperCase()} LV ${me().level}<br>` +
       `${mate().name} · ${NI.classes.get(mate().classId).name.toUpperCase()} LV ${mate().level}<br>` +
-      `TRUST: ${stage.label}<br>BATTLES WON: ${state.battlesWon}`;
+      `TRUST: ${stage.label}<br>` +
+      `${C().routeName(state.route, state.path, true).toUpperCase()}: ` +
+      `${C().trustStage(state.bond || 0).label}<br>` +
+      `BATTLES WON: ${state.battlesWon}`;
     syncSoundLabel();
     document.getElementById('overlay').hidden = false;
   });

@@ -214,6 +214,42 @@ body::before {
 .class-card .cc-role { font-size: 11px; color: var(--text-dim); margin-top: 5px; line-height: 1.4; }
 
 .class-detail { margin-top: 16px; min-height: 76px; }
+
+/* ---- route select ----
+   Seven cards, so they have to survive being small. Portrait strip on the
+   left rather than above, which keeps every card the same height whatever
+   the hook text does. */
+
+.route-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px;
+}
+
+.route-card {
+  --rc: var(--cyan);
+  display: grid; grid-template-columns: 76px 1fr; align-items: stretch;
+  background: var(--bg-1); border: 1px solid var(--line);
+  cursor: pointer; text-align: left; overflow: hidden;
+  transition: border-color .18s, box-shadow .18s, transform .18s;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.route-card:hover { transform: translateY(-2px); border-color: var(--rc); }
+.route-card.sel { border-color: var(--rc); box-shadow: 0 0 0 1px var(--rc), 0 0 18px -4px var(--rc); }
+
+.route-card .rc-art { background: var(--bg-2); position: relative; min-height: 104px; }
+.route-card .rc-art img,
+.route-card .rc-art .art-ph { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+.route-card .rc-art svg { width: 100%; height: 100%; display: block; }
+
+.route-card .rc-body { padding: 11px 13px 12px; display: block; }
+.rc-name, .rc-title, .rc-hook { display: block; }
+.rc-name  { font-family: var(--mono); font-size: 15px; font-weight: 700; letter-spacing: .06em; color: var(--rc); }
+.rc-title { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--text-dim);
+            text-transform: uppercase; margin: 3px 0 7px; }
+.rc-hook  { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+.rt-warn { display: block; margin-top: 6px; font-family: var(--mono); font-size: 11px;
+           letter-spacing: .08em; color: var(--magenta); }
 .cd-inner { border: 1px solid var(--line); background: rgba(0,0,0,.3); padding: 14px 16px; }
 .cd-blurb { font-size: 13.5px; color: var(--text-dim); line-height: 1.6; margin: 0 0 10px; }
 .cd-stats { display: flex; flex-wrap: wrap; gap: 8px; }

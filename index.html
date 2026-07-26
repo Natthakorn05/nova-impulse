@@ -29,7 +29,7 @@
   <!-- ===================== GENDER / LEAD SELECT ===================== -->
   <section id="screen-gender" class="screen screen-center">
     <div class="panel-frame wide">
-      <div class="panel-head"><span class="ph-tag">CHARACTER REGISTRATION</span><span class="ph-step">STEP 1 / 2</span></div>
+      <div class="panel-head"><span class="ph-tag">CHARACTER REGISTRATION</span><span class="ph-step">STEP 1 / 3</span></div>
       <p class="panel-note">Registration is permanent. The system does not offer a re-roll.</p>
       <div class="choice-grid" id="gender-grid"></div>
     </div>
@@ -38,12 +38,27 @@
   <!-- ===================== CLASS SELECT ===================== -->
   <section id="screen-class" class="screen screen-center">
     <div class="panel-frame wide">
-      <div class="panel-head"><span class="ph-tag">COMBAT CLASS</span><span class="ph-step">STEP 2 / 2</span></div>
+      <div class="panel-head"><span class="ph-tag">COMBAT CLASS</span><span class="ph-step">STEP 2 / 3</span></div>
       <p class="panel-note" id="class-note">Choose your class. Your partner's class is assigned by the system.</p>
       <div class="class-grid" id="class-grid"></div>
       <div class="class-detail" id="class-detail"></div>
       <div class="panel-actions">
         <button class="btn btn-primary" id="btn-class-confirm" disabled>CONFIRM</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ROUTE SELECT =====================
+       Which of the seven people this story turns out to be about.
+       Asked here rather than at a mid-game lock so that chapters 1-5
+       can carry the answer instead of ignoring it. -->
+  <section id="screen-route" class="screen screen-center">
+    <div class="panel-frame wide">
+      <div class="panel-head"><span class="ph-tag">BOND PROTOCOL</span><span class="ph-step">STEP 3 / 3</span></div>
+      <p class="panel-note" id="route-note">Forty thousand people went in. You will not survive this alone.</p>
+      <div class="route-grid" id="route-grid"></div>
+      <div class="panel-actions">
+        <button class="btn btn-primary" id="btn-route-confirm" disabled>CONFIRM</button>
       </div>
     </div>
   </section>

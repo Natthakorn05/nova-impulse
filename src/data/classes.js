@@ -184,7 +184,13 @@ NI.classes = (function () {
          trade-off, it is just being worse. Most of the correction is in
          evasion (see rg_step) because that is what the class is about; this
          is the small part of it that HP has to carry. */
-      growth: { hp: 7.9, mp: 4,  atk: 2.4, mag: 0.8, def: 1.1, spd: 2.0 },
+      /* Still the lowest growth of the four, but not by the margin it was.
+         The Ranger was carrying three compounding disadvantages at once —
+         lowest base HP, lowest HP per level, and not one HP or DEF node
+         anywhere in tiers 1-3 — against an evasion budget that is variance
+         rather than mitigation. Any one of those is a trade. All three is
+         just the worst class. */
+      growth: { hp: 8.6, mp: 4,  atk: 2.4, mag: 0.8, def: 1.2, spd: 2.0 },
       basic:  { name: 'Quick Shot', icon: 'arrow', power: 10, scaling: 'atk', element: 'physical' },
 
       tiers: [
@@ -203,7 +209,15 @@ NI.classes = (function () {
              pool it didn't get. */
           { id: 'rg_step', name: 'Light Step', icon: 'haste', type: 'passive',
             desc: '+3 SPD, +10% evasion. Distance is a resource.',
-            mods: { spd: 3, evade: 10 } }
+            mods: { spd: 3, evade: 10 } },
+          /* The Fighter has Second Wind and the Tank has Resolve; the class
+             with the smallest health pool in the game had no equivalent at
+             any tier it could reach. This is the missing one, and it sits at
+             tier 1 rather than 2 because the chapters where the Ranger dies
+             are the early ones. */
+          { id: 'rg_instinct', name: 'Survivalist', icon: 'regen', type: 'passive',
+            desc: '+16 Max HP, +2 DEF. Recover 4 HP at the start of each of your turns.',
+            mods: { hp: 16, def: 2, hpRegen: 4 } }
         ]},
 
         { tier: 2, nodes: [
@@ -223,6 +237,20 @@ NI.classes = (function () {
           { id: 'rg_keen', name: 'Keen Edge', icon: 'crit', type: 'passive',
             desc: '+10% critical chance, +20% critical damage, +2 ATK.',
             mods: { crit: 10, critMult: 0.20, atk: 2 } },
+          /* The Ranger's only defensive node in the whole tree was Phantom
+             Step, at tier 4 — level 11, which no chapter-1-to-5 run reaches.
+             So for the entire common route it was the one class with nothing
+             to spend a turn on except more damage, and it lost the boss 24
+             points more often than the three classes that could take cover.
+             That gap is not a stat problem and no amount of ATK fixes it.
+             Disengage is the Mage's Mirror Veil argument again: give the
+             fragile class a way to choose when to stop shooting, in the
+             tiers people actually play. It defends the way a Ranger should,
+             by not being where the attack lands. */
+          { id: 'rg_disengage', name: 'Disengage', icon: 'haste', type: 'active',
+            desc: 'Break contact. Sharply raises evasion and speed for 2 turns, and recovers MP.',
+            skill: { mp: 8, power: 0, scaling: 'atk', target: 'self', element: 'none',
+                     cooldown: 3, selfBuff: { evade: 24, spd: 4, turns: 2 }, restoreMp: 6 } },
           { id: 'rg_snare', name: 'Snare Trap', icon: 'trap', type: 'active',
             desc: 'Damages and Slows a target, and can Stun outright.',
             skill: { mp: 12, power: 13, scaling: 'atk', target: 'enemy', element: 'physical',

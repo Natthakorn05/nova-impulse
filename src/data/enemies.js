@@ -223,7 +223,13 @@ NI.enemies = (function () {
       /* Recompile at 40 HP/cast undid roughly a full party turn, so the fight
          did not shorten — it just got longer until someone lost. Cutting the
          heal is what makes the boss beatable; the stat trims are secondary. */
-      hp: 510, atk: 24, def: 23, mag: 22, spd: 16, crit: 11, evade: 5, xp: 400,
+      /* Re-hardened once the Ranger stopped being unplayable. Warden Prime
+         had been trimmed to compensate for a class that could not survive it;
+         with that fixed at the source, every class cleared it 87-96% of the
+         time and the final fight of the common route was no longer a fight.
+         The difficulty belongs here, in the boss, not in a stat line that
+         punished one class four times as hard as the others. */
+      hp: 545, atk: 25, def: 24, mag: 22, spd: 16, crit: 11, evade: 5, xp: 400,
       element: 'arcane',
       chroma: 'magenta',
       art: 'a towering administrator construct in white and gold ceremonial armour, a mirrored ' +
@@ -235,7 +241,7 @@ NI.enemies = (function () {
         { name: 'Restraint Lock', icon: 'stun',   power: 12, scaling: 'mag', target: 'enemy', weight: 1,
           status: { type: 'stun', chance: 0.42, turns: 1 } },
         { name: 'Recompile',      icon: 'regen',  power: 0,  scaling: 'def', target: 'self', weight: 1,
-          selfHeal: 32 }
+          selfHeal: 36 }
       ]
     }
   };
