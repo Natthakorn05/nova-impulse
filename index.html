@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NOVA IMPULSE</title>
+<link rel="stylesheet" href="styles/main.css?v=628ff51e">
+<link rel="stylesheet" href="styles/battle.css?v=a5a469fb">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===================== TITLE ===================== -->
+  <section id="screen-title" class="screen screen-center">
+    <div class="title-frame">
+      <div class="sys-tag">SYSTEM ONLINE</div>
+      <h1 class="title-logo"><span class="logo-nova">NOVA</span><span class="logo-imp">IMPULSE</span></h1>
+      <div class="title-rule"></div>
+      <p class="title-sub">You logged in. That was the last choice that was entirely yours.</p>
+      <div class="title-actions">
+        <button class="btn btn-primary" id="btn-new">NEW GAME</button>
+        <button class="btn" id="btn-continue">CONTINUE</button>
+      </div>
+      <p class="title-foot" id="title-foot"></p>
+    </div>
+  </section>
+
+  <!-- ===================== GENDER / LEAD SELECT ===================== -->
+  <section id="screen-gender" class="screen screen-center">
+    <div class="panel-frame wide">
+      <div class="panel-head"><span class="ph-tag">CHARACTER REGISTRATION</span><span class="ph-step">STEP 1 / 2</span></div>
+      <p class="panel-note">Registration is permanent. The system does not offer a re-roll.</p>
+      <div class="choice-grid" id="gender-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== CLASS SELECT ===================== -->
+  <section id="screen-class" class="screen screen-center">
+    <div class="panel-frame wide">
+      <div class="panel-head"><span class="ph-tag">COMBAT CLASS</span><span class="ph-step">STEP 2 / 2</span></div>
+      <p class="panel-note" id="class-note">Choose your class. Your partner's class is assigned by the system.</p>
+      <div class="class-grid" id="class-grid"></div>
+      <div class="class-detail" id="class-detail"></div>
+      <div class="panel-actions">
+        <button class="btn btn-primary" id="btn-class-confirm" disabled>CONFIRM</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== STORY / VN ===================== -->
+  <section id="screen-story" class="screen">
+    <header class="hud-bar">
+      <div class="hud-left">
+        <span class="hud-chapter" id="hud-chapter">CH.01</span>
+        <span class="hud-title" id="hud-title"></span>
+      </div>
+      <div class="hud-right">
+        <button class="btn btn-ghost btn-sm" id="btn-tree">
+          <span class="tree-alert" id="tree-alert" hidden></span>SKILLS
+        </button>
+        <button class="btn btn-ghost btn-sm" id="btn-menu">MENU</button>
+      </div>
+    </header>
+
+    <div class="vn-stage" id="vn-stage">
+      <div class="vn-scene" id="vn-scene"></div>
+      <div class="vn-cast" id="vn-cast"></div>
+      <div class="vn-scanline"></div>
+    </div>
+
+    <div class="vn-box">
+      <div class="vn-speaker" id="vn-speaker"></div>
+      <div class="vn-text" id="vn-text"></div>
+      <div class="vn-choices" id="vn-choices"></div>
+      <button class="vn-next" id="vn-next"><span>NEXT</span><i>▼</i></button>
+    </div>
+
+    <div class="party-strip" id="party-strip"></div>
+  </section>
+
+  <!-- ===================== BATTLE ===================== -->
+  <section id="screen-battle" class="screen">
+    <div class="bt-top">
+      <div class="bt-encounter" id="bt-encounter"></div>
+      <div class="bt-turnorder" id="bt-turnorder"></div>
+    </div>
+
+    <div class="bt-field">
+      <canvas id="bt-canvas"></canvas>
+      <div class="bt-foes" id="bt-foes"></div>
+      <div class="bt-popups" id="bt-popups"></div>
+    </div>
+
+    <div class="bt-log" id="bt-log"></div>
+
+    <div class="bt-party" id="bt-party"></div>
+
+    <div class="bt-actions" id="bt-actions"></div>
+    <div class="bt-targets" id="bt-targets" hidden></div>
+  </section>
+
+  <!-- ===================== SKILL TREE ===================== -->
+  <section id="screen-tree" class="screen">
+    <header class="hud-bar">
+      <div class="hud-left"><span class="hud-chapter">SKILL MATRIX</span></div>
+      <div class="hud-right"><button class="btn btn-ghost btn-sm" id="btn-tree-close">CLOSE</button></div>
+    </header>
+    <div class="tree-tabs" id="tree-tabs"></div>
+    <div class="tree-meta" id="tree-meta"></div>
+    <div class="tree-body" id="tree-body"></div>
+  </section>
+
+  <!-- ===================== CHAPTER CARD ===================== -->
+  <section id="screen-chapter" class="screen screen-center">
+    <div class="chapter-card">
+      <div class="cc-num" id="cc-num"></div>
+      <h2 class="cc-title" id="cc-title"></h2>
+      <p class="cc-sub" id="cc-sub"></p>
+      <button class="btn btn-primary" id="btn-chapter-go">PROCEED</button>
+    </div>
+  </section>
+
+  <!-- ===================== HOOK (end of Ch.5, NOT an ending) ===================== -->
+  <section id="screen-hook" class="screen screen-center">
+    <div class="panel-frame wide">
+      <div class="panel-head"><span class="ph-tag">TRANSMISSION ENDS</span></div>
+      <div class="hook-body" id="hook-body"></div>
+      <div class="hook-stats" id="hook-stats"></div>
+      <div class="panel-actions">
+        <button class="btn" id="btn-hook-title">RETURN TO TITLE</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== OVERLAYS ===================== -->
+  <div id="sys-toasts" class="sys-toasts"></div>
+
+  <div id="overlay" class="overlay" hidden>
+    <div class="overlay-card">
+      <h3>PAUSED</h3>
+      <div class="overlay-info" id="overlay-info"></div>
+      <button class="btn" id="btn-resume">RESUME</button>
+      <button class="btn" id="btn-save">SAVE</button>
+      <button class="btn btn-danger" id="btn-quit">QUIT TO TITLE</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Phaser: vendored locally so the game works offline and on file:// -->
+<script src="vendor/phaser.min.js?v=73d8b3a7"></script>
+
+<!-- data -->
+<script src="src/data/icons.js?v=e370ae77"></script>
+<script src="src/data/classes.js?v=b60fb452"></script>
+<script src="src/data/enemies.js?v=5f61e2eb"></script>
+<script src="src/data/characters.js?v=e70a1f04"></script>
+
+<!-- art -->
+<script src="src/art/prompts.js?v=125aa38d"></script>
+<script src="src/art/artLoader.js?v=92207b36"></script>
+
+<!-- systems -->
+<script src="src/battle/battleSystem.js?v=5f843a9b"></script>
+
+<!-- chapters -->
+<script src="src/data/chapters/chapter1.js?v=3bd9a986"></script>
+<script src="src/data/chapters/chapter2.js?v=4787290d"></script>
+<script src="src/data/chapters/chapter3.js?v=cc3af97c"></script>
+<script src="src/data/chapters/chapter4.js?v=b4a7ccc7"></script>
+<script src="src/data/chapters/chapter5.js?v=c374c477"></script>
+
+<!-- ui -->
+<script src="src/ui/battleStage.js?v=937473f8"></script>
+<script src="src/ui/battleHud.js?v=4bbf5376"></script>
+<script src="src/ui/skillTree.js?v=ac47d35b"></script>
+<script src="src/ui/screens.js?v=7a6624d8"></script>
+
+<!-- boot -->
+<script src="src/main.js?v=a6cdab97"></script>
+</body>
+</html>

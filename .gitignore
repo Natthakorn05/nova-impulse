@@ -1,0 +1,18 @@
+# API keys — never commit
+.env
+.env.*
+!.env.example
+
+node_modules/
+*.log
+.DS_Store
+
+# Generated art is large and reproducible via `npm run art`.
+# Uncomment the next line if you'd rather not commit ~5MB of images.
+# assets/generated/
+
+# Build output — Netlify regenerates this from tools/build-dist.mjs
+dist/
+
+# Local Claude Code permissions — machine state, not project config
+.claude/settings.local.json

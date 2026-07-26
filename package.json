@@ -1,0 +1,31 @@
+{
+  "name": "nova-impulse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Anime isekai battle-heavy visual novel with turn-based JRPG combat, class freedom and a 5-tier skill matrix.",
+  "scripts": {
+    "start": "python -m http.server 5173",
+    "serve": "python -m http.server 5173",
+    "art": "node tools/generate-art.mjs",
+    "art:list": "node tools/generate-art.mjs --list",
+    "art:force": "node tools/generate-art.mjs --force",
+    "art:cf": "node tools/generate-art.mjs --provider cloudflare",
+    "art:cut": "node tools/cutout.mjs",
+    "art:check": "node tools/cutout.mjs --check",
+    "art:qa": "node tools/qa-composite.mjs",
+    "qa": "node tools/qa-story.mjs && node tools/qa-art.mjs && node tools/qa-balance.mjs 800",
+    "qa:story": "node tools/qa-story.mjs",
+    "qa:art": "node tools/qa-art.mjs",
+    "qa:balance": "node tools/qa-balance.mjs",
+    "stamp": "node tools/stamp.mjs",
+    "build": "node tools/stamp.mjs && node tools/build-dist.mjs",
+    "deploy": "npm run build && npx netlify-cli deploy --dir dist --prod"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "jpeg-js": "^0.4.4",
+    "pngjs": "^7.0.0"
+  }
+}

@@ -1,0 +1,7 @@
+# Never bake secrets or tooling into the image
+.env
+.env.*
+.claude/
+tools/
+node_modules/
+*.log

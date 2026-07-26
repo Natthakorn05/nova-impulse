@@ -1,0 +1,54 @@
+# netlify.toml — static deploy config for Nova Impulse.
+#
+# `dist` is built by tools/build-dist.mjs, which allow-lists files.
+# Never point `publish` at the repo root: .env lives there.
+
+[build]
+  command = "node tools/build-dist.mjs"
+  publish = "dist"
+
+# index.html must always be revalidated, because it carries the ?v= content
+# hashes that invalidate everything else. If it is cached, a deploy changes
+# nothing for anyone who has already visited.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Scripts and styles are requested with a ?v=<sha1> stamped by tools/stamp.mjs,
+# so a changed file is a changed URL and these can be cached hard.
+[[headers]]
+  for = "/src/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/styles/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Art is versioned by the _v timestamp in index.json, which the loader appends
+# to every asset URL — but index.json itself must stay fresh to deliver it.
+[[headers]]
+  for = "/assets/generated/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/generated/index.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# The game is entirely self-contained: no CDN, no analytics, no outbound calls.
+# Saying so in a CSP means a compromised asset cannot start making them.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
