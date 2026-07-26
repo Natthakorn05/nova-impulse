@@ -201,8 +201,59 @@ NI.battle = (function () {
     };
   }
 
-  function makeFoe(enemyId, index) {
+  /**
+   * Build the third party slot from an owned Echo.
+   *
+   * `auto: true` is the important field. The Echo takes its own turn from
+   * the same weighted picker the enemies use, rather than stopping the loop
+   * for input. That is a design choice: a pet the player micromanages is a
+   * third set of buttons every round and doubles the length of a fight,
+   * and the Echo's job is to change how a fight feels, not how long it is.
+   */
+  function makeEcho(owned, partyLevel) {
+    const def = NI.echoes.get(owned.id);
+    if (!def) return null;
+    const stats = NI.echoes.stats(owned, partyLevel);
+    const r = NI.echoes.rarity(def.star);
+
+    return {
+      uid: 'echo',
+      side: 'party', kind: 'echo', auto: true,
+      name: def.name,
+      echoId: def.id,
+      enemyId: def.from,           // art key — Echoes reuse their source sprite
+      star: def.star,
+      role: def.role,
+      bond: owned.bond || 1,
+      color: r.color,
+      level: partyLevel,
+      stats,
+      hp: stats.hp, maxHp: stats.hp, mp: 0, maxMp: 0,
+      skills: def.skills.map((s, i) => ({ id: 'k' + i, ...s })),
+      statuses: [], buffs: [], cooldowns: {},
+      shield: 0, guarding: false, alive: true, actedThisRound: false
+    };
+  }
+
+  /**
+   * @param {number} [scale=1] flat multiplier on the enemy's combat numbers,
+   *        used by Breach waves. Applied to the spawned copy, never to the
+   *        template — NI.enemies.spawn already deep-copies, so scaling one
+   *        wave cannot leak into the next.
+   */
+  function makeFoe(enemyId, index, scale) {
     const e = NI.enemies.spawn(enemyId);
+    const k = scale || 1;
+    if (k !== 1) {
+      e.hp  = Math.round(e.hp  * k);
+      e.atk = Math.round(e.atk * k);
+      e.mag = Math.round(e.mag * k);
+      /* Defence scales at a lower rate than offence on purpose. Multiplying
+         DEF at the same rate as HP makes deep waves immune rather than
+         dangerous, because mitigation is already non-linear (100/(100+def*2.2)). */
+      e.def = Math.round(e.def * (1 + (k - 1) * 0.55));
+      e.xp  = Math.round(e.xp  * k);
+    }
     return {
       uid: 'foe' + index,
       side: 'foe', kind: 'foe',
@@ -353,15 +404,38 @@ NI.battle = (function () {
      ============================================================ */
 
   /**
-   * @param {Array}  party    save-shaped party members (2)
-   * @param {string} encounterId  key into NI.enemies.ENCOUNTERS
+   * @param {Array} party save-shaped party members (2)
+   * @param {string|object} encounterId key into NI.enemies.ENCOUNTERS, or a
+   *        literal encounter { name, foes, boss, scale } — Breach waves are
+   *        generated per run, so they cannot be looked up from a table.
+   * @param {object} [echo] owned Echo { id, bond } for the third slot
    */
-  function create(party, encounterId) {
-    const enc = NI.enemies.encounter(encounterId);
+  function create(party, encounterId, echo) {
+    const enc = (encounterId && typeof encounterId === 'object')
+      ? encounterId
+      : NI.enemies.encounter(encounterId);
     if (!enc) throw new Error('Unknown encounter: ' + encounterId);
 
     const allies = party.map(m => makeAlly(m, 'party'));
-    const foes = enc.foes.map((id, i) => makeFoe(id, i));
+    const foes = enc.foes.map((id, i) => makeFoe(id, i, enc.scale));
+
+    /* Echo joins as a third body, and its aura buffs the two real members.
+       Applied before the Vanguard pass so the two stack predictably. */
+    if (echo && echo.id) {
+      const avgLevel = Math.round(
+        party.reduce((n, m) => n + (m.level || 1), 0) / Math.max(1, party.length));
+      const unit = makeEcho(echo, avgLevel);
+      if (unit) {
+        const aura = NI.echoes.auraOf(echo);
+        for (const a of allies) {
+          for (const [k, v] of Object.entries(aura)) a.stats[k] = (a.stats[k] || 0) + v;
+          /* Aura HP is max-HP, so it has to reach the current pool too or it
+             is a bar that starts partly empty for no visible reason. */
+          if (aura.hp) { a.maxHp += aura.hp; a.hp += aura.hp; }
+        }
+        allies.push(unit);
+      }
+    }
 
     /* Vanguard: passive ally DEF aura */
     for (const a of allies) {
@@ -653,21 +727,36 @@ NI.battle = (function () {
 
     /* ---------- enemy AI ---------- */
 
-    function enemyAction(foe) {
-      const usable = foe.skills.filter(s => !(foe.cooldowns[s.id] > 0));
-      const pool = usable.length ? usable : foe.skills;
+    /**
+     * Weighted action pick for any unit the player does not control — foes
+     * and the Echo alike. Written against `unit.side` rather than assuming
+     * the actor is an enemy, because the Echo runs through this same path.
+     */
+    function autoAction(unit) {
+      const usable = unit.skills.filter(s => !(unit.cooldowns[s.id] > 0));
+      const pool = usable.length ? usable : unit.skills;
 
-      /* weighted pick, with a nudge toward finishing wounded targets */
       const total = pool.reduce((n, s) => n + (s.weight || 1), 0);
       let r = Math.random() * total;
       let chosen = pool[0];
       for (const s of pool) { r -= (s.weight || 1); if (r <= 0) { chosen = s; break; } }
 
-      const targets = B.alliesAlive();
+      /* Support skills aim at the actor's own side; everything else aims
+         across. Getting this backwards makes an Echo heal the boss. */
+      const t = chosen.target || 'enemy';
+      const friendly = (t === 'ally' || t === 'allAllies' || t === 'self');
+      const targets = friendly
+        ? B.living(unit.side)
+        : B.living(unit.side === 'party' ? 'foe' : 'party');
+
       let targetUid = null;
       if (targets.length) {
+        /* Heal the worst-off friend; finish the worst-off enemy. Same sort,
+           opposite intent, and both want the lowest HP fraction. */
         const wounded = targets.slice().sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
-        targetUid = (Math.random() < 0.45 ? wounded : targets[Math.floor(Math.random() * targets.length)]).uid;
+        targetUid = (friendly || Math.random() < 0.45)
+          ? wounded.uid
+          : targets[Math.floor(Math.random() * targets.length)].uid;
       }
       return { kind: 'skill', skillId: chosen.id, targetUid };
     }
@@ -680,7 +769,10 @@ NI.battle = (function () {
         B.over = true; B.won = true;
         B.xpEarned = B.foes.reduce((n, f) => n + (f.xp || 0), 0);
         emit('victory', { xp: B.xpEarned });
-      } else if (!B.alliesAlive().length) {
+      } else if (!B.alliesAlive().some(u => !u.auto)) {
+        /* Both leads down is a defeat even if the Echo is still standing.
+           A creature winning the fight alone after the party has been wiped
+           is not a comeback, it is a softlock with good animation. */
         B.over = true; B.won = false;
         emit('defeat', {});
       }
@@ -716,9 +808,10 @@ NI.battle = (function () {
         if (B.over) return { done: true };
         if (!unit.alive) continue;
 
-        if (unit.side === 'party') return { waiting: unit };
+        /* The Echo is on the party's side but plays itself. */
+        if (unit.side === 'party' && !unit.auto) return { waiting: unit };
 
-        act(unit, enemyAction(unit));
+        act(unit, autoAction(unit));
         if (B.over) return { done: true };
       }
     }

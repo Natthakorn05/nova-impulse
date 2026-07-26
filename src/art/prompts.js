@@ -65,6 +65,14 @@
               'realistic shonen anime proportions, head is small relative to the body',
     enemy:    'full body creature design sheet, head to feet inside the frame, ' +
               'imposing three-quarter stance, nothing cropped',
+    /* Echoes are the same creatures shrunk into companions, so the framing
+       has to fight the "imposing" read the enemy sheet is built around —
+       hence small, friendly, and low to the ground. Stated positively:
+       asking for "not menacing" produces something menacing. */
+    echo:     'full body creature companion design sheet, small pet-sized creature, ' +
+              'head to feet inside the frame with a margin, ' +
+              'alert friendly stance close to the ground, rounded appealing silhouette, ' +
+              'mascot proportions, nothing cropped',
     scene:    'detailed anime background painting, environment only, ' +
               'absolutely no people and no characters, cinematic wide establishing shot, ' +
               'strong atmospheric perspective and depth'
@@ -157,5 +165,23 @@
     }));
   }
 
-  return { STYLE, AVOID, CHROMA, FRAMING, buildPrompt, MANIFEST, enemyManifest, KIRITO, MASHA };
+  /* Echoes get their own art rather than reusing the source enemy's sprite.
+     A Warden Prime at pet scale is a different drawing, not the same one
+     shown smaller, and a gacha whose rewards are recoloured enemies reads
+     as placeholder work. */
+  function echoManifest(echoDefs) {
+    return Object.values(echoDefs).map(e => ({
+      key: 'echo_' + e.id,
+      /* `artKind` lets a non-creature Echo opt out of the mascot framing. */
+      kind: e.artKind || 'echo',
+      ratio: '1:1',
+      chroma: e.chroma || 'green',
+      subject: e.art
+    }));
+  }
+
+  return {
+    STYLE, AVOID, CHROMA, FRAMING, buildPrompt,
+    MANIFEST, enemyManifest, echoManifest, KIRITO, MASHA
+  };
 });

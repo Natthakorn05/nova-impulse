@@ -111,22 +111,33 @@ NI.hud = (function () {
 
   function renderParty() {
     el.party.innerHTML = B.allies.map(a => {
-      const cls = NI.classes.get(a.classId);
-      const key = a.uid + '_portrait';
+      /* An Echo has no class and no MP. It borrows its source enemy's art
+         and shows bond where a class name would go. */
+      const isEcho = a.kind === 'echo';
+      const cls = isEcho ? null : NI.classes.get(a.classId);
+      const color = isEcho ? a.color : cls.color;
+      const sub = isEcho
+        ? `${NI.echoes.rarity(a.star).label} · BOND ${a.bond}`
+        : `${cls.name.toUpperCase()} · L${a.level}`;
+      const key = isEcho ? 'echo_' + a.echoId : a.uid + '_portrait';
       const low = a.hp / a.maxHp <= 0.3;
+
       return `
-        <div class="bp-card ${acting === a ? 'active' : ''} ${a.alive ? '' : 'down'}" data-uid="${a.uid}">
+        <div class="bp-card ${isEcho ? 'echo' : ''} ${acting === a ? 'active' : ''} ${a.alive ? '' : 'down'}" data-uid="${a.uid}">
           <div class="bp-portrait">${NI.art.figure(key, a.name)}</div>
           <div class="bp-info">
             <div class="bp-top">
-              <span class="bp-name" style="color:${cls.color}">${a.name}</span>
-              <span class="bp-lv">${cls.name.toUpperCase()} · L${a.level}</span>
+              <span class="bp-name" style="color:${color}">${a.name}</span>
+              <span class="bp-lv">${sub}</span>
             </div>
             <div class="bp-bars">
               <div class="bar hp ${low ? 'low' : ''}"><i style="width:${pct(a.hp, a.maxHp)}"></i></div>
-              <div class="bar mp"><i style="width:${pct(a.mp, a.maxMp)}"></i></div>
+              ${a.maxMp ? `<div class="bar mp"><i style="width:${pct(a.mp, a.maxMp)}"></i></div>` : ''}
             </div>
-            <div class="bp-nums"><span>HP ${Math.max(0, a.hp)}/${a.maxHp}</span><span>MP ${a.mp}/${a.maxMp}</span></div>
+            <div class="bp-nums">
+              <span>HP ${Math.max(0, a.hp)}/${a.maxHp}</span>
+              ${a.maxMp ? `<span>MP ${a.mp}/${a.maxMp}</span>` : `<span>${a.role.toUpperCase()}</span>`}
+            </div>
             <div class="bp-status">${statusPips(a)}</div>
           </div>
         </div>`;
@@ -139,8 +150,8 @@ NI.hud = (function () {
 
     el.turnorder.innerHTML = '<span class="to-label">ORDER</span>' +
       upcoming.map((u, i) => {
-        const isFoe = u.side === 'foe';
-        return `<span class="to-chip ${isFoe ? 'foe' : ''} ${i === 0 ? 'now' : ''}">${u.name}</span>`;
+        const side = u.side === 'foe' ? 'foe' : (u.kind === 'echo' ? 'echo' : '');
+        return `<span class="to-chip ${side} ${i === 0 ? 'now' : ''}">${u.name}</span>`;
       }).join('');
   }
 

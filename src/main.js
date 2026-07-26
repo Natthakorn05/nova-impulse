@@ -280,6 +280,15 @@
   document.getElementById('btn-continue').addEventListener('click', continueGame);
   document.getElementById('btn-hook-title').addEventListener('click', toTitle);
 
+  /* The hook is where the endgame opens. Chapters 1-5 are balanced for a
+     two-person party, so Echoes deliberately do not exist before this point. */
+  document.getElementById('btn-hook-nexus').addEventListener('click', openNexus);
+  NI.endgame.bind();
+
+  function openNexus() {
+    NI.endgame.open(state, { save, toTitle });
+  }
+
   document.getElementById('btn-tree').addEventListener('click', () => {
     NI.tree.open(state, () => { save(); S().renderPartyStrip(state); });
     S().show('tree');

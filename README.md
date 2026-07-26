@@ -359,3 +359,70 @@ Chapters 1–5 complete: **109 story beats, 16 battles, 6 choice points (18 opti
 fails the build if that stops being true.
 
 No ending exists yet, by design. Chapter 5 stops mid-scene on the reveal.
+
+## Endgame — Echoes, Breach and summoning
+
+Everything below unlocks at the Chapter 5 hook and nowhere earlier. That is a
+balance decision before it is a story one: chapters 1–5 are tuned for a
+two-person party, and a third body raises every win rate in the game.
+
+**Breach** is an endless gauntlet. Waves scale +9% each, you recover 16% of
+your bars between them (34% after a Surge wave), and the run ends when both
+leads are down. Depth is the score.
+
+It is a gauntlet rather than a rematch with Warden Prime for a measurable
+reason. A rested level-10 party beats that boss close to 100% of the time —
+the story's difficulty is attrition across sixteen fights, not any single one.
+The first version of `tools/qa-echoes.mjs` benchmarked exactly that and every
+row read 100%, with or without an Echo, common or legendary. That is a broken
+instrument, not a balance result. Depth has no ceiling, so depth is what is
+measured now.
+
+**Echoes** are creature companions that fight in a third slot and play
+themselves — a pet the player micromanages is a third set of buttons every
+round and doubles the length of a fight. Sixteen of them across 3★/4★/5★.
+Duplicates raise *bond* (1–5) rather than stacking.
+
+5★ Echoes are summon-only: they have no `from` field, so nothing in the world
+drops them. Adding a new one later is one entry in `ECHOES` plus an art
+prompt — nothing else in the system needs to know.
+
+Measured contribution, as extra Breach waves over a 6.7-wave base:
+
+| tier | bond 1 | bond 5 |
+|---|---|---|
+| 3★ | +1.5 | +1.9 |
+| 4★ | +4.0 | +4.9 |
+| 5★ | +5.8 | +7.7 |
+
+Two things that had to be corrected to get there, both invisible without the
+tool. Wardens dominate an attrition mode far beyond their rarity — mitigation
+compounds where raw damage does not, and the first epic warden added **11.6**
+waves to a 6.6-wave base, beating both legendaries. And a 5★ striker landed
+*below* a 4★ warden, which is a broken promise about what rarity means; the
+fix was lifesteal rather than a bigger number, because a striker's problem is
+that damage does nothing to keep a run alive.
+
+The gacha costs 100 shards a pull, with pity guaranteeing a 5★ every 35.
+Completing the roster runs ~100 pulls, about 48 runs to wave 8. The first
+weighting put it at 313 pulls — roughly 174 runs — which is a joke at the
+player's expense rather than a collection goal.
+
+Run `npm run qa:echoes` after touching any of it.
+
+### A note on art for Echoes
+
+Each Echo has its own sprite rather than reusing its source enemy's. Two
+lessons are baked into `src/art/prompts.js` from generating them:
+
+- **Framing beats subject.** The mascot framing turned "a floating orb of cyan
+  light" into a blue cat with ears. The model follows the framing over the
+  description every time.
+- **A subject with no hard edge cannot be chroma-keyed.** `echo_wispling` was
+  rerolled four times across two chroma colours chasing a tint that no key
+  choice fixed. What fixed it was changing the *design* to include an opaque
+  crystal core, giving the key something to cut against.
+
+Negations still do not work. "Nobody inside" produced a hooded child with a
+visible face; filling the helm with violet smoke and two eye-lights produced
+empty armour.

@@ -314,3 +314,7 @@
   .bt-turnorder .to-label { display: none; }
   .foe-card { width: clamp(84px, 26vw, 110px); }
 }
+
+/* The Echo's party card — no MP bar, tinted by star tier. */
+.bp-card.echo { border-color: rgba(255,196,74,.35); }
+.to-chip.echo { border-color: rgba(255,196,74,.5); color: var(--amber); }

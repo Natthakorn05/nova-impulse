@@ -13,13 +13,14 @@
     "art:cut": "node tools/cutout.mjs",
     "art:check": "node tools/cutout.mjs --check",
     "art:qa": "node tools/qa-composite.mjs",
-    "qa": "node tools/qa-story.mjs && node tools/qa-art.mjs && node tools/qa-balance.mjs 800",
+    "qa": "node tools/qa-story.mjs && node tools/qa-art.mjs && node tools/qa-balance.mjs 800 && node tools/qa-echoes.mjs 300",
     "qa:story": "node tools/qa-story.mjs",
     "qa:art": "node tools/qa-art.mjs",
     "qa:balance": "node tools/qa-balance.mjs",
     "stamp": "node tools/stamp.mjs",
     "build": "node tools/stamp.mjs && node tools/build-dist.mjs",
-    "deploy": "npm run build && npx netlify-cli deploy --dir dist --prod"
+    "deploy": "npm run build && npx netlify-cli deploy --dir dist --prod",
+    "qa:echoes": "node tools/qa-echoes.mjs"
   },
   "engines": {
     "node": ">=18"

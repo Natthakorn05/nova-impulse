@@ -22,5 +22,21 @@
   "enemy_echoDuelist": "assets/generated/enemy_echoDuelist.png",
   "enemy_wardenPrime": "assets/generated/enemy_wardenPrime.png",
   "enemy_nullSeraph": "assets/generated/enemy_nullSeraph.png",
-  "_v": 1785055452705
+  "_v": 1785080784497,
+  "echo_shardling": "assets/generated/echo_shardling.png",
+  "echo_wispling": "assets/generated/echo_wispling.png",
+  "echo_houndling": "assets/generated/echo_houndling.png",
+  "echo_sentryling": "assets/generated/echo_sentryling.png",
+  "echo_thornling": "assets/generated/echo_thornling.png",
+  "echo_emberling": "assets/generated/echo_emberling.png",
+  "echo_stalkerling": "assets/generated/echo_stalkerling.png",
+  "echo_boarling": "assets/generated/echo_boarling.png",
+  "echo_knightling": "assets/generated/echo_knightling.png",
+  "echo_golemling": "assets/generated/echo_golemling.png",
+  "echo_duelling": "assets/generated/echo_duelling.png",
+  "echo_seraphling": "assets/generated/echo_seraphling.png",
+  "echo_wardenling": "assets/generated/echo_wardenling.png",
+  "echo_kagura": "assets/generated/echo_kagura.png",
+  "echo_ouros": "assets/generated/echo_ouros.png",
+  "echo_sovereign": "assets/generated/echo_sovereign.png"
 }

@@ -564,3 +564,125 @@ body::before {
     transition-duration: .01ms !important;
   }
 }
+
+/* ============================================================
+   Endgame — Nexus hub, Echo archive, summoning (§10)
+   ============================================================ */
+
+.nx-stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+.nx-stat {
+  flex: 1 1 140px; padding: 9px 12px;
+  border: 1px solid var(--line); background: rgba(53,230,255,.04);
+}
+.nx-stat span {
+  display: block; font-family: var(--mono); font-size: 9.5px;
+  letter-spacing: .13em; color: var(--text-mute);
+}
+.nx-stat b { font-family: var(--mono); font-size: 19px; color: var(--cyan); }
+
+.nx-actions { flex-wrap: wrap; }
+.nx-empty { color: var(--text-mute); font-size: 13px; line-height: 1.6; margin: 12px 0; }
+
+.nx-equipped { margin: 6px 0 14px; }
+.nx-eq { display: flex; gap: 14px; align-items: center; padding: 12px; border: 1px solid var(--line); }
+.nx-eq-art { width: 92px; height: 92px; flex: none; }
+.nx-eq-art img, .nx-eq-art svg { width: 100%; height: 100%; object-fit: contain; }
+.nx-eq-body { display: flex; flex-direction: column; gap: 3px; }
+.nx-eq-name { font-family: var(--mono); font-size: 15px; font-weight: 700; letter-spacing: .05em; }
+.nx-eq-sub { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: var(--text-mute); }
+.nx-eq-blurb { font-size: 12.5px; line-height: 1.55; color: var(--text-dim); margin-top: 4px; }
+
+/* ---- archive ---- */
+
+.ec-wrap { display: grid; grid-template-columns: 1fr minmax(260px, 340px); gap: 14px; padding: 14px; }
+@media (max-width: 860px) { .ec-wrap { grid-template-columns: 1fr; } }
+
+.ec-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  gap: 9px; align-content: start;
+}
+
+.ec-card {
+  position: relative; cursor: pointer; padding: 9px 7px 10px; text-align: center;
+  border: 1px solid var(--rar, var(--line));
+  background: linear-gradient(180deg, rgba(255,255,255,.035), transparent);
+  transition: transform .12s, box-shadow .15s;
+}
+.ec-card:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px var(--rar); }
+/* Unowned Echoes stay visible — the gaps are the reason to open this screen. */
+.ec-card.locked { opacity: .42; filter: grayscale(1); cursor: default; }
+.ec-card.locked:hover { transform: none; box-shadow: none; }
+.ec-card.equipped { box-shadow: 0 0 0 1px var(--rar), 0 0 18px -4px var(--rar); }
+
+.ec-art { height: 76px; display: flex; align-items: center; justify-content: center; }
+.ec-art img, .ec-art svg { max-width: 100%; max-height: 100%; object-fit: contain; }
+.ec-unknown { font-family: var(--mono); font-size: 30px; color: var(--text-mute); }
+
+.ec-name { font-family: var(--mono); font-size: 11px; font-weight: 700; margin-top: 5px; color: #fff; }
+.ec-rar  { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; color: var(--rar); }
+.ec-role { font-family: var(--mono); font-size: 8.5px; letter-spacing: .1em; color: var(--text-mute); margin-top: 2px; }
+
+.ec-bond { display: flex; gap: 3px; justify-content: center; margin-top: 5px; }
+.ec-bond i { width: 9px; height: 3px; background: var(--line-hot); }
+.ec-bond i.on { background: var(--rar); }
+
+.ec-flag {
+  position: absolute; top: 4px; right: 4px;
+  font-family: var(--mono); font-size: 8px; letter-spacing: .1em;
+  padding: 1px 4px; background: var(--rar); color: #08111b;
+}
+
+.ec-detail { border: 1px solid var(--line); padding: 13px; align-self: start; }
+.ec-det h4 { font-family: var(--mono); font-size: 14px; letter-spacing: .06em; margin: 0 0 7px; }
+.ec-blurb { font-size: 12.5px; line-height: 1.6; color: var(--text-dim); margin: 0 0 10px; }
+.ec-statline {
+  font-family: var(--mono); font-size: 10.5px; line-height: 1.7;
+  color: var(--text); margin: 10px 0; padding: 7px 9px;
+  border: 1px solid var(--line); background: rgba(53,230,255,.04);
+}
+.ec-aura { font-size: 12px; color: var(--text-dim); margin: 8px 0; }
+.ec-aura b { color: var(--green); }
+.ec-skill { margin-top: 9px; }
+.ec-skill-name {
+  display: block; font-family: var(--mono); font-size: 11px;
+  font-weight: 700; color: #fff; margin-bottom: 4px;
+}
+.ec-actions { display: flex; gap: 7px; margin-top: 14px; flex-wrap: wrap; }
+.ec-note { font-family: var(--mono); font-size: 9.5px; color: var(--text-mute); margin: 7px 0 0; }
+
+/* ---- summon ---- */
+
+.sm-wrap { padding: 16px; max-width: 620px; margin: 0 auto; width: 100%; }
+.sm-result { min-height: 260px; display: flex; align-items: center; justify-content: center; }
+
+.sm-card {
+  text-align: center; padding: 16px 18px 18px; width: 100%;
+  border: 1px solid var(--rar);
+  background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--rar) 18%, transparent), transparent 70%);
+  animation: smIn .34s cubic-bezier(.2,.9,.3,1.2);
+}
+/* A 5-star pull is the whole point of the screen, so it gets its own beat. */
+.sm-card.big { box-shadow: 0 0 34px -6px var(--rar); animation-duration: .55s; }
+
+@keyframes smIn {
+  from { opacity: 0; transform: scale(.9) translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.sm-art { height: 168px; display: flex; align-items: center; justify-content: center; }
+.sm-art img, .sm-art svg { max-width: 100%; max-height: 100%; object-fit: contain; }
+.sm-rar  { font-family: var(--mono); font-size: 13px; letter-spacing: .2em; margin-top: 8px; }
+.sm-name { font-family: var(--mono); font-size: 21px; font-weight: 700; color: #fff; margin-top: 2px; }
+.sm-line { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--cyan); margin-top: 5px; }
+.sm-blurb { font-size: 12.5px; line-height: 1.6; color: var(--text-dim); margin: 10px auto 0; max-width: 44ch; }
+
+/* ---- breach result ---- */
+
+.br-summary { margin: 14px 0; }
+.br-line {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 7px 0; border-bottom: 1px solid var(--line);
+}
+.br-line span { font-family: var(--mono); font-size: 10px; letter-spacing: .13em; color: var(--text-mute); }
+.br-line b { font-family: var(--mono); font-size: 17px; color: var(--cyan); }
+.br-new { font-size: 12.5px; color: var(--green); margin-top: 10px; }

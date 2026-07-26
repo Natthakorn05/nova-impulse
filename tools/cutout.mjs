@@ -286,7 +286,7 @@ function trim(img) {
 
 /* Scenes keep their backgrounds — only the things that stand *in* a scene
    get cut out. */
-const isSubject = name => /^(kirito|masha|enemy)_/.test(name);
+const isSubject = name => /^(kirito|masha|enemy|echo)_/.test(name);
 
 function main() {
   if (!fs.existsSync(DIR)) { console.error('no assets/generated'); process.exit(1); }

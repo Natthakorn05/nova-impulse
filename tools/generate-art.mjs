@@ -64,7 +64,11 @@ const promptsNI = loadBrowserModule('src/art/prompts.js');
 const enemiesNI = loadBrowserModule('src/data/enemies.js');
 const P = promptsNI.prompts;
 
-const MANIFEST = P.MANIFEST.concat(P.enemyManifest(enemiesNI.enemies.ENEMIES));
+const echoesNI = loadBrowserModule('src/data/echoes.js');
+
+const MANIFEST = P.MANIFEST
+  .concat(P.enemyManifest(enemiesNI.enemies.ENEMIES))
+  .concat(P.echoManifest(echoesNI.echoes.ECHOES));
 
 /* ---------------- args ---------------- */
 

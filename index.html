@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>NOVA IMPULSE</title>
-<link rel="stylesheet" href="styles/main.css?v=8426e7f3">
-<link rel="stylesheet" href="styles/battle.css?v=d00ad2a9">
+<link rel="stylesheet" href="styles/main.css?v=06c2f177">
+<link rel="stylesheet" href="styles/battle.css?v=099fa2c8">
 </head>
 <body>
 
@@ -128,7 +128,62 @@
       <div class="hook-body" id="hook-body"></div>
       <div class="hook-stats" id="hook-stats"></div>
       <div class="panel-actions">
+        <button class="btn btn-primary" id="btn-hook-nexus">ENTER THE NEXUS</button>
         <button class="btn" id="btn-hook-title">RETURN TO TITLE</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== NEXUS (endgame hub) ===================== -->
+  <section id="screen-nexus" class="screen screen-center">
+    <div class="panel-frame wide">
+      <div class="panel-head"><span class="ph-tag">THE NEXUS</span><span class="ph-step">POST-CHAPTER 5</span></div>
+      <p class="panel-note">The Breach never closed. Neither did you.</p>
+      <div class="nx-stats" id="nx-stats"></div>
+      <div class="nx-equipped" id="nx-equipped"></div>
+      <div class="panel-actions nx-actions">
+        <button class="btn btn-primary" id="nx-breach">ENTER BREACH</button>
+        <button class="btn" id="nx-echoes">ECHOES</button>
+        <button class="btn" id="nx-summon">SUMMON</button>
+        <button class="btn btn-ghost" id="nx-leave">TITLE</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ECHO ROSTER ===================== -->
+  <section id="screen-echoes" class="screen">
+    <header class="hud-bar">
+      <div class="hud-left"><span class="hud-chapter">ECHO ARCHIVE</span></div>
+      <div class="hud-right"><button class="btn btn-ghost btn-sm" id="ec-back">BACK</button></div>
+    </header>
+    <div class="ec-wrap">
+      <div class="ec-grid" id="ec-grid"></div>
+      <div class="ec-detail" id="ec-detail"></div>
+    </div>
+  </section>
+
+  <!-- ===================== SUMMON ===================== -->
+  <section id="screen-summon" class="screen">
+    <header class="hud-bar">
+      <div class="hud-left"><span class="hud-chapter">RESONANCE SUMMON</span></div>
+      <div class="hud-right"><button class="btn btn-ghost btn-sm" id="sm-back">BACK</button></div>
+    </header>
+    <div class="sm-wrap">
+      <div class="nx-stats" id="sm-meta"></div>
+      <div class="sm-result" id="sm-result"></div>
+      <div class="panel-actions">
+        <button class="btn btn-primary" id="sm-pull">SUMMON</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== BREACH RESULT ===================== -->
+  <section id="screen-breachend" class="screen screen-center">
+    <div class="panel-frame">
+      <div class="panel-head"><span class="ph-tag">BREACH COLLAPSED</span></div>
+      <div class="br-summary" id="br-summary"></div>
+      <div class="panel-actions">
+        <button class="btn btn-primary" id="br-back">RETURN TO NEXUS</button>
       </div>
     </div>
   </section>
@@ -166,14 +221,17 @@
 <script src="src/data/classes.js?v=2fab23c4"></script>
 <script src="src/data/enemies.js?v=55025de9"></script>
 <script src="src/data/characters.js?v=e70a1f04"></script>
+<script src="src/data/echoes.js?v=6ae61145"></script>
+<script src="src/data/breach.js?v=84521970"></script>
+<script src="src/data/collection.js?v=1b5e113b"></script>
 
 <!-- art -->
-<script src="src/art/prompts.js?v=125aa38d"></script>
+<script src="src/art/prompts.js?v=1a5b930f"></script>
 <script src="src/art/artLoader.js?v=92207b36"></script>
 
 <!-- systems -->
 <script src="src/audio/sfx.js?v=4892fbf5"></script>
-<script src="src/battle/battleSystem.js?v=4bec1b18"></script>
+<script src="src/battle/battleSystem.js?v=dea699ed"></script>
 
 <!-- chapters -->
 <script src="src/data/chapters/chapter1.js?v=3bd9a986"></script>
@@ -184,11 +242,12 @@
 
 <!-- ui -->
 <script src="src/ui/battleStage.js?v=ef2758e0"></script>
-<script src="src/ui/battleHud.js?v=4e4bad14"></script>
+<script src="src/ui/battleHud.js?v=f5f9c0cf"></script>
 <script src="src/ui/skillTree.js?v=de6aede4"></script>
 <script src="src/ui/screens.js?v=7a6624d8"></script>
+<script src="src/ui/endgame.js?v=efd1c826"></script>
 
 <!-- boot -->
-<script src="src/main.js?v=5bbe3d6a"></script>
+<script src="src/main.js?v=8bf8d588"></script>
 </body>
 </html>
