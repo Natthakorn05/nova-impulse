@@ -53,6 +53,12 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    # blob: is required. Phaser does not point an <img> at the asset URL — it
+    # XHRs the file and hands the browser an object URL, so every battle
+    # sprite is a blob:. Without it the fetch succeeds, the decode is blocked,
+    # and the canvas silently stays empty. This only reproduces on Netlify;
+    # localhost sends no CSP at all, so the whole class of bug is invisible
+    # in local testing.
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "no-referrer"
