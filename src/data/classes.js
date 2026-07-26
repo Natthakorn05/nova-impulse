@@ -104,7 +104,20 @@ NI.classes = (function () {
             mods: { mp: 18, mpRegen: 4 } },
           { id: 'mg_wards', name: 'Woven Wards', icon: 'barrier', type: 'passive',
             desc: '+10 Max HP, +4 DEF. Mages who survive tier 2 tend to survive tier 5.',
-            mods: { hp: 10, def: 4 } }
+            mods: { hp: 10, def: 4 } },
+          /* The Mage was the one class that easing chapters 4-5 never reached:
+             every other class gained 7-11 points of boss clear and the Mage
+             stayed flat at 54%, then 59% after a health bump. Its losses are
+             not to incoming damage, they are to having no answer once the
+             opening burst fails to end the fight — no heal, no shield, no way
+             to spend a turn that is not another spell. Giving it one costs
+             the class nothing it is supposed to have: the shield scales off
+             MAG, so it is still the same glass cannon, it just gets to choose
+             when to stop shooting. */
+          { id: 'mg_veil', name: 'Mirror Veil', icon: 'barrier', type: 'active',
+            desc: 'Wrap yourself in a shield woven from raw magic, and recover MP.',
+            skill: { mp: 12, power: 0, scaling: 'mag', target: 'self', element: 'arcane',
+                     cooldown: 3, shield: 0.8, restoreMp: 6 } }
         ]},
 
         { tier: 3, nodes: [

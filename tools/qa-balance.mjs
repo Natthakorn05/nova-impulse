@@ -88,10 +88,17 @@ function pickAction(B, unit) {
 
   const affordable = unit.skills.filter(s => (s.mp || 0) <= unit.mp);
 
-  /* heal/self-sustain first when badly hurt */
+  /* Self-sustain first when badly hurt.
+     `shield` belongs here as much as `heal` does. Scoring only on `heal`
+     silently mis-plays any class whose survival option is a barrier — the
+     simulated Mage would buy Mirror Veil and then never once cast it, and
+     the measurement would report the fix as worthless. This is the same
+     class of instrument bug as scoring skills on raw `power`, which made the
+     Ranger read thirty points weaker than it is. */
   const hurt = unit.hp / unit.maxHp;
-  const heal = affordable.find(s => s.heal && hurt < 0.45);
-  if (heal) return { kind: 'skill', skillId: heal.id, targetUid: unit.uid };
+  const guard = affordable.find(s =>
+    (s.heal || s.shield) && hurt < 0.45 && !(unit.cooldowns[s.id] > 0));
+  if (guard) return { kind: 'skill', skillId: guard.id, targetUid: unit.uid };
 
   /* no MP and hurt -> guard to bank some back */
   if (hurt < 0.25 && affordable.length <= 1 && unit.mp < unit.maxMp * 0.3) {
