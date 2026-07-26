@@ -200,7 +200,7 @@ NI.story.chapter2 = {
                   part {me} keeps turning over: it wasn't a decision they made. It's a decision
                   something made <em>for</em> them, and it worked perfectly.</p>`
       },
-      next: 'c2_patrol'
+      next: 'rt2_hub'
     },
 
     c2_fight2: { battle: 'c2_patrol', onWin: 'c2_after2', onLose: 'c2_after2' },

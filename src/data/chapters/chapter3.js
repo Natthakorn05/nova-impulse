@@ -188,7 +188,7 @@ NI.story.chapter3 = {
                  face and it lasts about a second and a half.</p>
                  <p class="nar">Masha thinks: <em>oh no.</em></p>`
       },
-      next: 'c3_choice_romance'
+      next: 'rt3_hub'
     },
 
     c3_choice_romance: {

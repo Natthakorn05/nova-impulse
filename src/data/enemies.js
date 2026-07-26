@@ -243,6 +243,194 @@ NI.enemies = (function () {
         { name: 'Recompile',      icon: 'regen',  power: 0,  scaling: 'def', target: 'self', weight: 1,
           selfHeal: 36 }
       ]
+    },
+
+    /* ---------------- Chapter 7 — the staging shore ----------------
+       The second act's whole idea is that the world you escape into is the
+       same world, unfinished. So its natives are not a new bestiary, they
+       are things that were never given a final pass: assets without
+       textures, and player-shaped instances left running by a test harness
+       nobody ever shut down. */
+
+    greyboxWalker: {
+      id: 'greyboxWalker', name: 'Untextured', tier: 'trash', chapter: 7,
+      hp: 520, atk: 41, def: 28, mag: 18, spd: 15, crit: 9, evade: 6, xp: 70,
+      element: 'physical',
+      chroma: 'magenta',
+      art: 'a humanoid figure built entirely from flat untextured grey development blocks, ' +
+           'plain matte grey geometric slabs with visible seams and a checkerboard placeholder ' +
+           'pattern across the chest, blank grey head with no features, unfinished asset',
+      skills: [
+        { name: 'Blunt Instance', icon: 'fist',  power: 26, scaling: 'atk', target: 'enemy', weight: 3 },
+        { name: 'Clipping',       icon: 'quake', power: 19, scaling: 'atk', target: 'allEnemies', weight: 2,
+          defPierce: 0.35 }
+      ]
+    },
+
+    strayInstance: {
+      id: 'strayInstance', name: 'Stray Instance', tier: 'trash', chapter: 7,
+      hp: 450, atk: 39, def: 23, mag: 42, spd: 26, crit: 14, evade: 16, xp: 70,
+      element: 'arcane',
+      chroma: 'green',
+      art: 'a translucent person-shaped silhouette of pale blue light with a soft glowing outline ' +
+           'and no interior detail, trailing faint duplicate afterimages of itself half a step ' +
+           'behind, like a recording of a person rather than a person',
+      skills: [
+        { name: 'Repeat Action', icon: 'link',  power: 17, scaling: 'mag', target: 'enemy', weight: 3, hits: 2 },
+        { name: 'Desync',        icon: 'stun',  power: 14, scaling: 'mag', target: 'enemy', weight: 2,
+          status: { type: 'slow', chance: 0.6, turns: 2 } },
+        { name: 'Fork',          icon: 'haste', power: 0,  scaling: 'mag', target: 'self', weight: 1,
+          selfBuff: { evade: 22, spd: 6, turns: 2 } }
+      ]
+    },
+
+    continuityWarden: {
+      id: 'continuityWarden', name: 'Continuity Warden', tier: 'boss', chapter: 7,
+      hp: 1900, atk: 44, def: 33, mag: 42, spd: 18, crit: 12, evade: 6, xp: 340,
+      element: 'light',
+      chroma: 'magenta',
+      art: 'a tall angular custodian construct of brushed steel and pale green signal light, ' +
+           'a ring of floating rectangular panels orbiting its shoulders displaying scrolling ' +
+           'diagnostic glyphs, one broad flat visor of green light, arms held out in a levelling gesture',
+      skills: [
+        { name: 'Reconcile',   icon: 'nova',   power: 25, scaling: 'mag', target: 'allEnemies', weight: 2 },
+        { name: 'Rollback',    icon: 'drain',  power: 27, scaling: 'mag', target: 'enemy', weight: 3, lifesteal: 0.4 },
+        { name: 'Hold State',  icon: 'stun',   power: 15, scaling: 'mag', target: 'enemy', weight: 1,
+          status: { type: 'stun', chance: 0.4, turns: 1 } },
+        { name: 'Revert',      icon: 'regen',  power: 0,  scaling: 'def', target: 'self', weight: 1,
+          selfHeal: 52 }
+      ]
+    },
+
+    /* ---------------- Chapter 8 — a hundred and eleven ----------------
+       The chapter where the game admits it has been run before. Its enemies
+       are previous attempts: builds of the party that got further than this
+       one and were archived anyway. */
+
+    iterationEcho: {
+      id: 'iterationEcho', name: 'Iteration Echo', tier: 'elite', chapter: 8,
+      hp: 640, atk: 42, def: 28, mag: 38, spd: 24, crit: 20, evade: 14, xp: 110,
+      element: 'arcane',
+      chroma: 'green',
+      art: 'a humanoid duellist made of dark violet glass with a faint golden version number ' +
+           'etched glowing across the chest plate, smooth featureless face like a blank mask, ' +
+           'a long thin blade in each hand, poised mid-step',
+      skills: [
+        { name: 'Same Opening', icon: 'slash', power: 21, scaling: 'atk', target: 'enemy', weight: 3, hits: 2,
+          critBonus: 15 },
+        { name: 'Known Answer', icon: 'mark',  power: 16, scaling: 'atk', target: 'enemy', weight: 2,
+          status: { type: 'mark', chance: 1, turns: 3, power: 0.35 } },
+        { name: 'Prior Draft',  icon: 'nova',  power: 22, scaling: 'mag', target: 'allEnemies', weight: 2 }
+      ]
+    },
+
+    priorBuild: {
+      id: 'priorBuild', name: 'PRIOR BUILD', tier: 'boss', chapter: 8,
+      hp: 1820, atk: 45, def: 33, mag: 41, spd: 22, crit: 18, evade: 9, xp: 450,
+      element: 'dark',
+      chroma: 'green',
+      art: 'a tall armoured figure in cracked white and gold ceremonial plate identical to a hero ' +
+           'but corroded and archived, a mirrored faceplate showing only static, one gauntlet ' +
+           'holding a broken banner, violet archive light bleeding from every seam',
+      skills: [
+        { name: 'Everything You Tried', icon: 'cleave', power: 26, scaling: 'atk', target: 'allEnemies', weight: 2 },
+        { name: 'Deprecate',            icon: 'thrust', power: 34, scaling: 'atk', target: 'enemy', weight: 3,
+          defPierce: 0.32 },
+        { name: 'Overwrite',            icon: 'drain',  power: 28, scaling: 'mag', target: 'enemy', weight: 2,
+          lifesteal: 0.55 },
+        { name: 'Restore Point',        icon: 'regen',  power: 0,  scaling: 'def', target: 'self', weight: 1,
+          selfHeal: 60 }
+      ]
+    },
+
+    /* ---------------- Chapter 9 — the ones who stayed ---------------- */
+
+    archivistShell: {
+      id: 'archivistShell', name: 'Archivist Shell', tier: 'elite', chapter: 9,
+      hp: 720, atk: 43, def: 35, mag: 37, spd: 14, crit: 10, evade: 4, xp: 125,
+      element: 'light',
+      chroma: 'magenta',
+      art: 'a hunched robed custodian of pale bone-white ceramic plating with no face, ' +
+           'carrying a heavy open ledger of glowing amber pages chained to its wrist, ' +
+           'thin gold filaments trailing from its shoulders like cut strings',
+      skills: [
+        { name: 'File Away',   icon: 'trap',    power: 24, scaling: 'mag', target: 'enemy', weight: 3,
+          status: { type: 'stun', chance: 0.35, turns: 1 } },
+        { name: 'Redact',      icon: 'nova',    power: 23, scaling: 'mag', target: 'allEnemies', weight: 2 },
+        { name: 'Seal Record', icon: 'barrier', power: 0,  scaling: 'def', target: 'self', weight: 1,
+          selfBuff: { def: 22, turns: 2 } }
+      ]
+    },
+
+    architectProxy: {
+      id: 'architectProxy', name: 'THE ARCHITECT', tier: 'boss', chapter: 9,
+      hp: 2320, atk: 49, def: 36, mag: 47, spd: 20, crit: 15, evade: 7, xp: 600,
+      element: 'arcane',
+      /* Deliberately not monstrous. The chapter's whole argument is that the
+         thing in the room is a committee of exhausted people who could not
+         stop working, so the sprite has to read as sad rather than evil. */
+      chroma: 'green',
+      art: 'a towering figure assembled from dozens of overlapping translucent amber human ' +
+           'silhouettes standing in the same place, layered like exposures of a crowd, ' +
+           'a single calm lit face forming where they overlap, robes of soft gold light, ' +
+           'weary rather than threatening',
+      skills: [
+        { name: 'Design Intent',  icon: 'nova',   power: 28, scaling: 'mag', target: 'allEnemies', weight: 2,
+          defPierce: 0.25 },
+        { name: 'Scope Creep',    icon: 'quake',  power: 24, scaling: 'mag', target: 'allEnemies', weight: 2,
+          status: { type: 'slow', chance: 0.55, turns: 2 } },
+        { name: 'Ship It',        icon: 'hammer', power: 38, scaling: 'atk', target: 'enemy', weight: 3,
+          defPierce: 0.3 },
+        { name: 'One More Pass',  icon: 'regen',  power: 0,  scaling: 'def', target: 'self', weight: 1,
+          selfHeal: 70 }
+      ]
+    },
+
+    /* ---------------- Chapter 10 — Nova Impulse ---------------- */
+
+    coreAspect: {
+      id: 'coreAspect', name: 'Core Aspect', tier: 'elite', chapter: 10,
+      hp: 820, atk: 48, def: 30, mag: 46, spd: 27, crit: 18, evade: 12, xp: 155,
+      element: 'storm',
+      /* Third chroma for this one, and the chroma was never the problem.
+         Magenta bled 33% pink through the white and gold; green bled 7% and
+         left 6% of the backdrop uncut. A subject made entirely of radiating
+         light has no edge for a key to cut against, so every backdrop colour
+         ends up inside the halo — which is exactly what echo_wispling took
+         four rerolls to teach. The fix is the DESIGN, not the backdrop: give
+         it opaque machinery to be made of and let the light sit inside that. */
+      chroma: 'orange',
+      art: 'a floating shard of solid opaque white stone with sharp hard-cut facets, ' +
+           'clamped inside two heavy dark gunmetal rings with visible bolts and panel seams, ' +
+           'a narrow slot of brilliant cyan light glowing between the rings, ' +
+           'matte solid surfaces, no face, no limbs',
+      skills: [
+        { name: 'Impulse',    icon: 'bolt',  power: 26, scaling: 'mag', target: 'enemy', weight: 3, hits: 2 },
+        { name: 'Cascade',    icon: 'nova',  power: 24, scaling: 'mag', target: 'allEnemies', weight: 2 },
+        { name: 'Accelerate', icon: 'haste', power: 0,  scaling: 'mag', target: 'self', weight: 1,
+          selfBuff: { spd: 8, evade: 14, turns: 2 } }
+      ]
+    },
+
+    impulseCore: {
+      id: 'impulseCore', name: 'NOVA IMPULSE', tier: 'boss', chapter: 10,
+      hp: 2600, atk: 50, def: 36, mag: 48, spd: 23, crit: 16, evade: 6, xp: 900,
+      element: 'light',
+      chroma: 'orange',
+      art: 'an enormous suspended engine, three concentric rings of heavy dark gunmetal ' +
+           'plating with rivets, panel seams and solid opaque housings, a small blinding ' +
+           'white star core held at the centre, thin streamers of cyan data falling from ' +
+           'the underside, matte solid machinery, cathedral scale',
+      skills: [
+        { name: 'Full Release',  icon: 'nova',   power: 31, scaling: 'mag', target: 'allEnemies', weight: 3,
+          defPierce: 0.3 },
+        { name: 'Compile',       icon: 'hammer', power: 42, scaling: 'atk', target: 'enemy', weight: 3,
+          defPierce: 0.35 },
+        { name: 'Halt',          icon: 'stun',   power: 20, scaling: 'mag', target: 'enemy', weight: 1,
+          status: { type: 'stun', chance: 0.45, turns: 1 } },
+        { name: 'Iterate',       icon: 'regen',  power: 0,  scaling: 'def', target: 'self', weight: 1,
+          selfHeal: 80 }
+      ]
     }
   };
 
@@ -281,10 +469,39 @@ NI.enemies = (function () {
        Hollow Knight standing beside a Null Seraph is a sentence about the
        world, and it costs no art. The scale field hardens them without
        inventing stat blocks nobody would recognise. */
-    c6_leak:     { name: 'Breach Leak',         foes: ['voidStalker', 'dataWisp'], scale: 1.15 },
-    c6_choir:    { name: 'Broken Choir',        foes: ['nullSeraph', 'cinderMoth'], scale: 1.15 },
-    c6_pair:     { name: 'Sealed Pair',         foes: ['hollowKnight', 'echoDuelist'], scale: 1.2 },
-    c6_gate:     { name: 'THE GATE',            foes: ['siegeGolem', 'voidStalker'], scale: 1.3, boss: true }
+    /* Scales were set when chapter 6 was a two-person party. It is three from
+       here, which measured as a 98-100% clear across every class — the whole
+       chapter was a victory lap. */
+    c6_leak:     { name: 'Breach Leak',         foes: ['voidStalker', 'dataWisp'], scale: 1.5 },
+    c6_choir:    { name: 'Broken Choir',        foes: ['nullSeraph', 'cinderMoth'], scale: 1.5 },
+    c6_pair:     { name: 'Sealed Pair',         foes: ['hollowKnight', 'echoDuelist'], scale: 1.55 },
+    c6_gate:     { name: 'THE GATE',            foes: ['siegeGolem', 'voidStalker'], scale: 1.75, boss: true },
+
+    /* ---------------- Chapters 7-10 ----------------
+       Every fight from here fields three party members, because the equipped
+       Echo takes the field from chapter 6 on. A third body is roughly +50%
+       actions before any stat is compared, so these are not chapter-6
+       numbers with a multiplier — they are built for a bigger party and
+       measured that way (tools/qa-balance.mjs --late). */
+
+    c7_grey:     { name: 'Unfinished Ground',   foes: ['greyboxWalker', 'greyboxWalker'] },
+    c7_stray:    { name: 'Stray Instances',     foes: ['strayInstance', 'strayInstance'] },
+    c7_mixed:    { name: 'Test Harness',        foes: ['greyboxWalker', 'strayInstance'] },
+    c7_warden:   { name: 'CONTINUITY WARDEN',   foes: ['continuityWarden'], boss: true },
+
+    c8_echo:     { name: 'Iteration Echo',      foes: ['iterationEcho'] },
+    c8_pair:     { name: 'Two Of You',          foes: ['iterationEcho', 'iterationEcho'] },
+    c8_archive:  { name: 'Archived Attempt',    foes: ['iterationEcho', 'greyboxWalker'], scale: 1.1 },
+    c8_prior:    { name: 'PRIOR BUILD',         foes: ['priorBuild'], boss: true },
+
+    c9_shells:   { name: 'Archivist Shells',    foes: ['archivistShell', 'archivistShell'] },
+    c9_guard:    { name: 'Core Guard',          foes: ['archivistShell', 'iterationEcho'], scale: 1.1 },
+    c9_run:      { name: 'The Open Ground',     foes: ['coreAspect', 'strayInstance'], scale: 1.1 },
+    c9_proxy:    { name: 'THE ARCHITECT',       foes: ['architectProxy'], boss: true },
+
+    c10_aspects: { name: 'Core Aspects',        foes: ['coreAspect', 'coreAspect'] },
+    c10_last:    { name: 'Last Iteration',      foes: ['priorBuild', 'coreAspect'], scale: 1.05 },
+    c10_core:    { name: 'NOVA IMPULSE',        foes: ['impulseCore'], boss: true }
   };
 
   function get(id) { return ENEMIES[id]; }

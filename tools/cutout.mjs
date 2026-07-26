@@ -285,8 +285,15 @@ function trim(img) {
 /* ---------------- run ---------------- */
 
 /* Scenes keep their backgrounds — only the things that stand *in* a scene
-   get cut out. */
-const isSubject = name => /^(kirito|masha|enemy|echo)_/.test(name);
+   get cut out.
+
+   Stated as "everything that is not a scene" rather than as a list of known
+   prefixes. It used to be /^(kirito|masha|enemy|echo)_/, which meant adding a
+   character to the cast silently skipped the cutout for it: the six romance
+   portraits generated fine, produced no .png, and qa-art reported them as
+   "file missing" with no hint that the cause was a regex three files away.
+   An allowlist that has to be edited whenever content is added is a trap. */
+const isSubject = name => !/^scene_/.test(name);
 
 function main() {
   if (!fs.existsSync(DIR)) { console.error('no assets/generated'); process.exit(1); }

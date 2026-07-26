@@ -24,14 +24,45 @@
   root.NI.prompts = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
 
-  /* Style contract. Concrete and production-flavoured — vague "high quality,
-     masterpiece" tag soup is what produces generic output. */
+  /* ------------------------------------------------------------
+     Style contract.
+
+     Concrete and production-flavoured — vague "high quality,
+     masterpiece" tag soup is what produces generic output.
+
+     THE TARGET LOOK (set from reference, 2026-07-27)
+     ------------------------------------------------
+     Soft modern light-novel-adaptation anime — the KonoSuba /
+     Bunny Girl Senpai family. Specifically:
+
+       - THIN, delicate line art. Not bold black outlines.
+       - Soft cel shading, gentle gradient transitions, light blush.
+       - Large rounded eyes, gradient irises, several highlights.
+       - Soft rounded jaw, small nose, small mouth.
+       - Layered hair with soft internal highlight bands.
+       - Pale skin, muted and slightly desaturated palette.
+       - Teenage to young-adult, never rugged or middle-aged.
+
+     An earlier pass asked for "bold clean black outlines, vibrant
+     saturated colours, sharp angular stylised features" to escape
+     a set of drawings that read as western cartoons. It escaped
+     them in the wrong direction — heavy shonen poster art, which
+     is a different genre from the rest of this game's cast. Both
+     failures came from steering the RENDERING when the problem was
+     the rendering; the fix is to name the target family instead of
+     naming an axis and pushing along it.
+
+     tools/qa-art.mjs measures saturation and outline weight against
+     this contract so drift shows up as a number, not as taste.
+     ------------------------------------------------------------ */
   const STYLE =
-    'official anime key visual, modern TV anime production, ' +
-    'clean confident linework, crisp cel shading with two-tone shadows, ' +
-    'expressive detailed face, sharp well-drawn eyes with highlights, ' +
-    'correct anatomy, detailed hands, vivid but controlled palette, ' +
-    'soft rim light from upper left';
+    'official anime key visual from a modern light novel adaptation, ' +
+    'soft delicate thin line art, gentle cel shading with soft gradient transitions, ' +
+    'large rounded expressive eyes with detailed gradient irises and several bright highlights, ' +
+    'soft rounded jawline, small nose, small mouth, pale clear skin with light blush, ' +
+    'layered hair with soft internal highlight bands, ' +
+    'muted gentle pastel-leaning palette, soft diffuse lighting, ' +
+    'clean and calm, correct anatomy, detailed hands';
 
   /* Things the models reliably get wrong if not steered away from. */
   /* "not chibi" has to be stated explicitly and more than once. Asked for a
@@ -41,15 +72,28 @@
     'not chibi, not super-deformed, not a small child, no oversized head, ' +
     'no text, no watermark, no signature, no border, no frame, ' +
     'no floating objects, no extra limbs, no malformed hands, ' +
-    'no duplicate characters, no motion blur, no photorealism, no 3d render';
+    'no duplicate characters, no motion blur, no photorealism, no 3d render, ' +
+    /* Added after a pass came back as heavy shonen poster art: these are the
+       specific renderings that read as a different show from the rest of the
+       cast, and the models reach for them the moment "anime" is unqualified. */
+    'no thick black outlines, no heavy ink, no harsh angular faces, ' +
+    'no oversaturated colours, no comic book style, no western cartoon style';
+
+  /* The trailing clause is load-bearing and was added after a real failure.
+     STYLE asks for a "muted pastel-leaning palette", and the model applied
+     that to the BACKDROP as well — Yuji came back on soft sage green instead
+     of #00b140, and cutout.mjs removed 3.3% of it. The palette instruction
+     has to be explicitly scoped to the subject or it eats the key. */
+  const PURE = ', the background colour is pure fully-saturated flat colour, ' +
+               'unaffected by the subject\'s palette, lighting or mood';
 
   const CHROMA = {
     green:   'isolated on a completely flat solid chroma-green background (#00b140), ' +
-             'uniform background with no gradient, no shadow cast on the background',
+             'uniform background with no gradient, no shadow cast on the background' + PURE,
     magenta: 'isolated on a completely flat solid magenta background (#ff00d0), ' +
-             'uniform background with no gradient, no shadow cast on the background',
+             'uniform background with no gradient, no shadow cast on the background' + PURE,
     orange:  'isolated on a completely flat solid orange background (#ff7a00), ' +
-             'uniform background with no gradient, no shadow cast on the background'
+             'uniform background with no gradient, no shadow cast on the background' + PURE
   };
 
   const FRAMING = {
@@ -117,6 +161,84 @@
     'wearing a white and deep teal fitted technical jacket with a high collar, ' +
     'dark navy trousers, brown belt';
 
+  /* ------------------------------------------------------------
+     The six romance leads (§11).
+
+     Each description is written to carry the character's ONE
+     readable idea, because a route card is 76 pixels wide and the
+     player picks from it before reading a word of prose: Kazuma
+     is unbothered, Yuji is hurt and hiding it, Uzui is enormous
+     and lit, Chizuru is mid-task, Airi is holding a notebook,
+     Mati is already moving.
+
+     Chroma is per-asset and deliberately far from anything the
+     subject is allowed to be — Airi is teal so she keys on
+     magenta; Uzui is violet so he keys on green. Picking a chroma
+     "different from the base colour" is not enough, it has to be
+     different from every colour the model might reach for.
+     ------------------------------------------------------------ */
+
+  /* Every cast member goes through STYLE alone. There used to be a
+     CAST_STYLE suffix here and then a second, heavier ANIME suffix bolted
+     onto two of them, which is how half the cast ended up in a different
+     rendering from the other half. One style contract, applied once. */
+
+  /* No age words anywhere in these — see the note above buildPrompt. A first
+     draft of this block said "late teens" and would have been rejected
+     wholesale by Cloudflare's classifier. Age lives in the prose. */
+
+  const KAZUMA =
+    'a slim young man, soft rounded face, ' +
+    'messy dark brown hair falling over one eye, ' +
+    'narrow half-lidded green eyes, flat unimpressed expression, ' +
+    'a worn olive-brown coat with a turned-up collar over a black shirt, ' +
+    'arms folded, shoulders relaxed';
+
+  /* Four poses, and the first three were all fighting the framing rather
+     than the model. FRAMING.portrait is "bust-up crop, face fills much of
+     the frame" — a forearm is out of shot by construction, so every attempt
+     to show the glowing arm either mangled a hand reaching into frame or
+     produced a jacket sleeve with a stripe painted on it. The character's
+     idea is "something is lit under his skin", not "his arm specifically",
+     so it moves to the neck, which a bust crop always contains.
+
+     Colours are stated flatly too: an earlier draft said "crimson" and came
+     back pink with gold eyes. */
+  const YUJI =
+    'a young man, warm open face, soft jaw, ' +
+    'spiky dark red hair with soft highlight bands, large warm brown eyes, ' +
+    'tired friendly half-smile, an open scuffed dark red jacket over a grey shirt ' +
+    'with a loose open collar, ' +
+    'a soft glowing pale gold line running up one side of his neck from under the collar';
+
+  const UZUI =
+    'a very tall broad-shouldered young man, striking handsome face, ' +
+    'long white hair tied back high, bright violet eyes, ' +
+    'wide confident theatrical smile, ' +
+    'an ornate sleeveless dark tunic with gold trim and layered bead jewellery, ' +
+    'both arms opened outward in a welcoming gesture';
+
+  const CHIZURU =
+    'a composed young woman, calm refined face, ' +
+    'long straight dark red hair, sharp pink eyes, ' +
+    'faintly exasperated patient expression, ' +
+    'a fitted charcoal work coat over a white collared shirt, ' +
+    'a rolled paper map held under one arm';
+
+  const AIRI =
+    'a quiet slight young woman, gentle rounded face, ' +
+    'short pale teal bob-cut hair with a soft fringe, large calm grey eyes, ' +
+    'neutral thoughtful expression, ' +
+    'a soft oversized cream cardigan over a dark dress, ' +
+    'a small worn notebook held against her chest with both hands';
+
+  const MATIKANE =
+    'an energetic young woman, bright open face, ' +
+    'long golden-blonde hair streaming backwards with a single stray strand, ' +
+    'huge bright orange eyes, enormous delighted open smile, ' +
+    'a light athletic running jacket in white and amber over shorts, ' +
+    'leaning forward mid-stride';
+
   const MANIFEST = [
     { key: 'kirito_portrait', kind: 'portrait', ratio: '1:1', chroma: 'green',
       subject: KIRITO },
@@ -127,6 +249,22 @@
       subject: MASHA },
     { key: 'masha_sprite',    kind: 'sprite',   ratio: '3:4', chroma: 'magenta',
       subject: MASHA },
+
+    /* --- the six routes. Portraits only: they appear on the route cards and
+       in scene casts, never as battle sprites, so a sprite each would be six
+       generations nothing renders. --- */
+    { key: 'kazuma_portrait',   kind: 'portrait', ratio: '1:1', chroma: 'magenta',
+      subject: KAZUMA },
+    { key: 'yuji_portrait',     kind: 'portrait', ratio: '1:1', chroma: 'green',
+      subject: YUJI },
+    { key: 'uzui_portrait',     kind: 'portrait', ratio: '1:1', chroma: 'green',
+      subject: UZUI },
+    { key: 'chizuru_portrait',  kind: 'portrait', ratio: '1:1', chroma: 'green',
+      subject: CHIZURU },
+    { key: 'airi_portrait',     kind: 'portrait', ratio: '1:1', chroma: 'magenta',
+      subject: AIRI },
+    { key: 'matikane_portrait', kind: 'portrait', ratio: '1:1', chroma: 'magenta',
+      subject: MATIKANE },
 
     /* --- scenes keep their backgrounds --- */
     { key: 'scene_nexus', kind: 'scene', ratio: '16:9',

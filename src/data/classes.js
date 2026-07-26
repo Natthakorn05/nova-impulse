@@ -61,6 +61,14 @@ NI.classes = (function () {
       icon: 'flame',
       blurb: 'Highest damage ceiling in the game and the lowest health pool. ' +
              'Mages end fights before fights end them.',
+      /* That blurb was not true. Measured at level 17, the Mage's tier-5
+         single-target spell did 118 raw against the Fighter's 139 and the
+         Ranger's 127 — the lowest ceiling in the game, attached to the lowest
+         health pool in the game, which is not a trade-off, it is just the
+         worst class in the last three chapters (55% clear vs the Tank's 87%).
+         Tiers 4-5 were raised until Ruin is genuinely the biggest number
+         anyone can produce, which is what the player was promised at
+         registration. */
       /* Glass cannon, but it has to survive long enough to be a cannon.
          At the original 76/+6 a Mage died in ~4 turns to a 10-turn boss,
          making the class unviable in the fight it is meant to carry. */
@@ -100,11 +108,15 @@ NI.classes = (function () {
                      combo: 1.3, bonusVs: { status: ['slow', 'freeze'], mult: 1.6 },
                      status: { type: 'freeze', chance: 0.3, turns: 1 } } },
           { id: 'mg_font', name: 'Manafont', icon: 'mp', type: 'passive',
-            desc: '+18 Max MP. Restore 4 MP at the start of each turn.',
-            mods: { mp: 18, mpRegen: 4 } },
+            desc: '+18 Max MP. Restore 6 MP at the start of each turn.',
+            /* 4/turn is fine against a 500 HP boss and not against a 2600 HP one:
+               the chapter 9-10 fights run long enough that the Mage was casting
+               its basic attack for the back half, which is the shape of the
+               61-66% clears it was posting there. */
+            mods: { mp: 18, mpRegen: 6 } },
           { id: 'mg_wards', name: 'Woven Wards', icon: 'barrier', type: 'passive',
-            desc: '+10 Max HP, +4 DEF. Mages who survive tier 2 tend to survive tier 5.',
-            mods: { hp: 10, def: 4 } },
+            desc: '+18 Max HP, +5 DEF. Mages who survive tier 2 tend to survive tier 5.',
+            mods: { hp: 18, def: 5 } },
           /* The Mage was the one class that easing chapters 4-5 never reached:
              every other class gained 7-11 points of boss clear and the Mage
              stayed flat at 54%, then 59% after a health bump. Its losses are
@@ -140,29 +152,34 @@ NI.classes = (function () {
         { tier: 4, nodes: [
           { id: 'mg_meteor', name: 'Meteor', icon: 'quake', type: 'active',
             desc: 'Enormous fire damage to all enemies. Two-turn cooldown.',
-            skill: { mp: 30, power: 26, scaling: 'mag', target: 'allEnemies', element: 'fire',
+            skill: { mp: 30, power: 30, scaling: 'mag', target: 'allEnemies', element: 'fire',
                      combo: 1.4, cooldown: 2, status: { type: 'burn', chance: 0.6, turns: 3, power: 6 } } },
           { id: 'mg_zero', name: 'Absolute Zero', icon: 'ice', type: 'active',
             desc: 'Freezes a single target outright and deals heavy ice damage.',
-            skill: { mp: 26, power: 30, scaling: 'mag', target: 'enemy', element: 'ice',
+            skill: { mp: 26, power: 36, scaling: 'mag', target: 'enemy', element: 'ice',
                      combo: 1.35, cooldown: 2, status: { type: 'freeze', chance: 0.85, turns: 2 } } },
           { id: 'mg_arcanum', name: 'Arcanum', icon: 'nova', type: 'passive',
-            desc: '+8 MAG, +20 Max MP. The point where theory becomes weather.',
-            mods: { mag: 8, mp: 20 } }
+            desc: '+8 MAG, +25 Max HP, +20 Max MP. The point where theory becomes weather.',
+            /* The Mage's upper tree had no health on it at all, while the Fighter
+               and Tank both buy 30-60 HP at tier 4. That is fine at level 9 and
+               fatal by level 17, and it showed: the Mage cleared the chapter 10
+               boss 38% of the time against 66-76% for everyone else. Same shape
+               of bug as the Ranger's missing tier 1-3 HP, one tier higher up. */
+            mods: { mag: 8, mp: 20, hp: 25 } }
         ]},
 
         { tier: 5, nodes: [
           { id: 'mg_ruin', name: 'Ruin', icon: 'nova', type: 'active',
             desc: 'Single-target annihilation. Ignores 40% of the target\'s defence.',
-            skill: { mp: 38, power: 44, scaling: 'mag', target: 'enemy', element: 'arcane',
+            skill: { mp: 38, power: 58, scaling: 'mag', target: 'enemy', element: 'arcane',
                      combo: 1.5, cooldown: 3, defPierce: 0.4 } },
           { id: 'mg_eclipse', name: 'Eclipse', icon: 'drain', type: 'active',
             desc: 'Dark AoE that drains life from every enemy it touches.',
-            skill: { mp: 36, power: 24, scaling: 'mag', target: 'allEnemies', element: 'dark',
+            skill: { mp: 36, power: 30, scaling: 'mag', target: 'allEnemies', element: 'dark',
                      combo: 1.45, cooldown: 3, lifesteal: 0.45 } },
           { id: 'mg_ascend', name: 'Ascendance', icon: 'up', type: 'passive',
-            desc: '+12 MAG, +12% crit. There is not much left to teach you.',
-            mods: { mag: 12, crit: 12 } }
+            desc: '+12 MAG, +35 Max HP, +12% crit. There is not much left to teach you.',
+            mods: { mag: 12, crit: 12, hp: 35 } }
         ]}
       ]
     },

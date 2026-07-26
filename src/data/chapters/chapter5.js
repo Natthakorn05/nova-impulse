@@ -83,7 +83,7 @@ NI.story.chapter5 = {
                  <p>"Kirito," Masha says. "That's us. Why is that <em>us.</em>"</p>
                  <p>"Because we're ahead of schedule," he says. "It told us. At the door."</p>`
       },
-      next: 'c5_escort'
+      next: 'rt5_hub'
     },
 
     c5_escort: {
@@ -365,8 +365,14 @@ NI.story.chapter5 = {
        HOOK — Chapter 5 closes mid-breath. No resolution, by design.
        ============================================================ */
 
+    /* These two used to be `hook: true` — terminal screens with no exit,
+       because chapter 6 did not exist yet. That made chapter 6 unreachable
+       even after it was written. They are ordinary beats now and hand off to
+       it, which is also where the face behind the faceplate stops being a
+       cliffhanger and starts being the plot: "so much earlier than last time"
+       and "we'll go again" are literal, and chapter 8 shows the shelf they
+       were said from. */
     c5_hook_win: {
-      hook: true,
       text: {
         kirito: `<p class="nar">Warden Prime goes down on one knee, and the rings stop, and the
                  whole spire holds its breath.</p>
@@ -392,11 +398,11 @@ NI.story.chapter5 = {
                  <p>"Kirito." Her voice does not sound like hers. "<em>Look at its face.</em>"</p>
                  <span class="sysmsg">ASSESSMENT COMPLETE. SUBJECT PAIR: RETAINED.</span>
                  <span class="sysmsg">CHAPTER 05 ENDS. SESSION CONTINUES.</span>`
-      }
+      },
+      goChapter: 6
     },
 
     c5_hook_lose: {
-      hook: true,
       text: {
         kirito: `<p class="nar">You go down at the foot of the chair, and the extraction does not
                  come, and Warden Prime stands over you for a long moment doing nothing at all.</p>
@@ -421,7 +427,8 @@ NI.story.chapter5 = {
                  <p class="nar">Beside you, Kirito says a word you have never heard him say.</p>
                  <span class="sysmsg">ASSESSMENT INCOMPLETE. SUBJECT PAIR: RETAINED.</span>
                  <span class="sysmsg">CHAPTER 05 ENDS. SESSION CONTINUES.</span>`
-      }
+      },
+      goChapter: 6
     }
 
   }

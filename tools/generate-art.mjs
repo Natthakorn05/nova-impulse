@@ -90,13 +90,37 @@ const RATIO = {
 
 /* ---------------- providers ---------------- */
 
+/* Every provider call goes through this rather than bare fetch().
+   Node's fetch has no default timeout, so a provider that accepts the
+   connection and then never answers hangs the whole run forever — and
+   because the request never rejects, the fallback chain below never fires.
+   That is exactly what Pollinations did on this batch: the generator sat on
+   one portrait indefinitely with four working providers configured behind
+   it. A dead provider has to fail fast to be fallen back from. */
+const HTTP_TIMEOUT = Number(process.env.ART_TIMEOUT_MS || 90000);
+
+async function fetchWithTimeout(url, opts = {}) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), HTTP_TIMEOUT);
+  try {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error(`timeout after ${Math.round(HTTP_TIMEOUT / 1000)}s`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 const providers = {
 
   /* Free, no account, no cap. The default for this project. */
   async pollinations(prompt, size, seed) {
     const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
                 `?width=${size.w}&height=${size.h}&nologo=true&model=flux&seed=${seed}`;
-    const r = await fetch(url, { headers: { 'User-Agent': 'nova-impulse-artgen' } });
+    const r = await fetchWithTimeout(url, { headers: { 'User-Agent': 'nova-impulse-artgen' } });
     if (!r.ok) throw new Error(`pollinations HTTP ${r.status}`);
     const buf = Buffer.from(await r.arrayBuffer());
     if (buf.length < 1000) throw new Error('pollinations returned a suspiciously small body');
@@ -108,7 +132,7 @@ const providers = {
     const token = process.env.HF_TOKEN;
     if (!token) throw new Error('HF_TOKEN missing from .env');
     const model = process.env.HF_MODEL || 'cagliostrolab/animagine-xl-4.0';
-    const r = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+    const r = await fetchWithTimeout(`https://api-inference.huggingface.co/models/${model}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -132,7 +156,7 @@ const providers = {
     const token = process.env.CF_API_TOKEN;
     if (!acct || !token) throw new Error('CF_ACCOUNT_ID / CF_API_TOKEN missing from .env');
     const model = process.env.CF_MODEL || '@cf/black-forest-labs/flux-1-schnell';
-    const r = await fetch(
+    const r = await fetchWithTimeout(
       `https://api.cloudflare.com/client/v4/accounts/${acct}/ai/run/${model}`,
       {
         method: 'POST',
@@ -161,7 +185,7 @@ const providers = {
     const key = process.env.TOGETHER_API_KEY;
     if (!key) throw new Error('TOGETHER_API_KEY missing from .env');
     const model = process.env.TOGETHER_MODEL || 'black-forest-labs/FLUX.1-schnell-Free';
-    const r = await fetch('https://api.together.xyz/v1/images/generations', {
+    const r = await fetchWithTimeout('https://api.together.xyz/v1/images/generations', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -181,7 +205,7 @@ const providers = {
     const key = process.env.GEMINI_API_KEY;
     if (!key) throw new Error('GEMINI_API_KEY missing from .env');
     const model = process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image';
-    const r = await fetch(
+    const r = await fetchWithTimeout(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
         method: 'POST',
@@ -218,8 +242,15 @@ async function generate(prompt, size, seed) {
      costs visual consistency across the cast. */
   const ATTEMPTS = 9;
 
+  /* A timeout is not a rate limit. Rate limits clear if you wait; a provider
+     that accepts the connection and never answers is simply down, and giving
+     it the full nine attempts with exponential backoff costs a quarter of an
+     hour per asset before the working provider behind it is ever tried. */
+  const TIMEOUT_ATTEMPTS = 2;
+
   for (const name of order) {
     if (!providers[name]) continue;
+    let timeouts = 0;
     for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
       try {
         /* vary the seed per attempt so an NSFW retry is a genuinely
@@ -228,6 +259,11 @@ async function generate(prompt, size, seed) {
         return { ...out, provider: name, attempts: attempt };
       } catch (err) {
         const msg = err.message || String(err);
+        const timedOut = /timeout after/i.test(msg);
+        if (timedOut && ++timeouts >= TIMEOUT_ATTEMPTS) {
+          errors.push(`${name}: ${msg} (x${timeouts}, moving on)`);
+          break;
+        }
         const rateLimited = /HTTP (5\d\d|429)|fetch failed|timeout|small body/i.test(msg);
         /* Cloudflare's NSFW classifier is non-deterministic — the exact same
            prompt passes on one call and is rejected on the next. Treating it

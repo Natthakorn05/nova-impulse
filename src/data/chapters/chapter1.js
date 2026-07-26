@@ -318,7 +318,7 @@ NI.story.chapter1 = {
                  <p class="nar">It's the closest thing to <em>please stay</em> she thinks he's capable
                  of, and Masha decides that counts.</p>`
       },
-      next: 'c1_ambush'
+      next: 'rt1_hub'
     },
 
     c1_bond_guard: {
@@ -333,7 +333,7 @@ NI.story.chapter1 = {
                  classified material.</p>
                  <p>She stays anyway. She's stubborn like that.</p>`
       },
-      next: 'c1_ambush'
+      next: 'rt1_hub'
     },
 
     c1_ambush: {

@@ -62,6 +62,7 @@ for (const entry of manifest) {
   const C = RGB[chroma];
 
   let opaque = 0, soft = 0, residue = 0, cast = 0, worst = 0;
+  let satSum = 0, ink = 0;
   for (let i = 0; i < img.data.length; i += 4) {
     const [r, g, b, a] = [img.data[i], img.data[i + 1], img.data[i + 2], img.data[i + 3]];
     if (a <= 16) continue;
@@ -70,7 +71,56 @@ for (const entry of manifest) {
     if (Math.hypot(r - C[0], g - C[1], b - C[2]) < 110) residue++;
     const c = castOf(chroma, r, g, b);
     if (c > 30) { cast++; if (c > worst) worst = c; }
+
+    /* ---- style measurements (see the STYLE contract in src/art/prompts.js) ----
+       Two numbers, because these are the two axes the cast has actually
+       drifted along, and both drifts were invisible to every check here:
+
+       sat — HSV saturation. The house look is a muted pastel-leaning
+             palette. A pass that came back as heavy shonen poster art was
+             far more saturated than the assets around it and nothing said so.
+
+       ink — share of pixels that are much darker than their own local
+             neighbourhood. That is line work. The first version of this
+             counted near-black pixels outright and was measuring WARDROBE:
+             Kirito wears a black coat and scored 88%, Airi wears a cream
+             cardigan and scored 3.5%, and the tool duly reported that the
+             two leads were drawn in different styles. A black garment is
+             uniformly dark, so its interior is not darker than its
+             surroundings; an outline always is.
+
+       Neither is a quality judgement, and neither can be. They are drift
+       alarms: they fire when one asset stops matching the rest of the cast,
+       which is the failure that actually shipped. */
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    satSum += mx === 0 ? 0 : (mx - mn) / mx;
   }
+
+  /* Line density: a pixel counts as line work when it is much darker than the
+     average of the ring of pixels a few steps away from it. Sampled on a
+     stride so this stays cheap on a 768x768 sheet. */
+  const W = img.width, H = img.height, D = img.data;
+  const lum = (x, y) => {
+    const i = (y * W + x) * 4;
+    if (D[i + 3] <= 16) return -1;
+    return 0.299 * D[i] + 0.587 * D[i + 1] + 0.114 * D[i + 2];
+  };
+  const R = 3;
+  let lineHits = 0, lineTests = 0;
+  for (let y = R; y < H - R; y += 2) {
+    for (let x = R; x < W - R; x += 2) {
+      const c = lum(x, y);
+      if (c < 0) continue;
+      lineTests++;
+      let sum = 0, n = 0;
+      for (const [dx, dy] of [[-R, 0], [R, 0], [0, -R], [0, R]]) {
+        const v = lum(x + dx, y + dy);
+        if (v >= 0) { sum += v; n++; }
+      }
+      if (n && (sum / n) - c > 70) lineHits++;
+    }
+  }
+  ink = lineTests ? lineHits / lineTests : 0;
 
   rows.push({
     key: entry.key, chroma,
@@ -78,7 +128,9 @@ for (const entry of manifest) {
     coverage: opaque / (img.width * img.height),
     residue: residue / opaque,
     cast: cast / opaque,
-    worst, soft: soft / opaque
+    worst, soft: soft / opaque,
+    sat: satSum / opaque,
+    ink   /* already a ratio of sampled pixels — do not divide again */
   });
 }
 
@@ -125,6 +177,46 @@ for (const r of rows) {
   if (r.cast > castLimit(r.key)) flagged.push(`${r.key}: ${(r.cast * 100).toFixed(1)}% of the subject is tinted ${r.chroma} (peak +${r.worst}) — wrong chroma for this palette, reroll on another`);
   if (r.coverage < 0.12) flagged.push(`${r.key}: only ${(r.coverage * 100).toFixed(1)}% of the frame is subject — the key probably ate it`);
   if (r.coverage > 0.92) flagged.push(`${r.key}: ${(r.coverage * 100).toFixed(1)}% opaque — the background was probably never removed`);
+}
+
+/* ------------------------------------------------------------
+   Style drift across the CAST specifically.
+
+   Enemies and Echoes are allowed to be lurid — a Null Seraph should not
+   share a palette with a girl holding a notebook. The contract that has to
+   hold is that the PEOPLE read as one show, male and female alike, so the
+   cohort is the portraits and sprites and the comparison is against their
+   own median rather than against a number invented here.
+   ------------------------------------------------------------ */
+const castRows = rows.filter(r => !r.missing && /_(portrait|sprite)$/.test(r.key));
+if (castRows.length >= 4) {
+  const med = (xs) => { const a = xs.slice().sort((p, q) => p - q); return a[Math.floor(a.length / 2)]; };
+  const satMed = med(castRows.map(r => r.sat));
+  const inkMed = med(castRows.map(r => r.ink));
+
+  console.log('\ncast style — soft light-novel look (median sat ' +
+              satMed.toFixed(2) + ', ink ' + (inkMed * 100).toFixed(1) + '%)');
+  console.log('asset                    sat     ink%');
+  console.log('-'.repeat(42));
+  for (const r of castRows) {
+    console.log(r.key.padEnd(25) + r.sat.toFixed(2).padStart(4) +
+                (r.ink * 100).toFixed(1).padStart(9));
+  }
+
+  /* Generous bands. The point is to catch a member of the cast rendered in a
+     different style from the rest, not to police individual palettes — a
+     redhead in a red jacket is legitimately more saturated than a girl in a
+     cream cardigan. */
+  for (const r of castRows) {
+    if (r.sat > satMed + 0.20) {
+      flagged.push(`${r.key}: saturation ${r.sat.toFixed(2)} vs cast median ${satMed.toFixed(2)} — ` +
+                   `reads more vivid than the rest of the cast, check it is the same style`);
+    }
+    if (r.ink > inkMed + 0.055) {
+      flagged.push(`${r.key}: ${(r.ink * 100).toFixed(1)}% near-black vs cast median ` +
+                   `${(inkMed * 100).toFixed(1)}% — heavy outlines, house style is thin delicate line art`);
+    }
+  }
 }
 
 if (flagged.length) {

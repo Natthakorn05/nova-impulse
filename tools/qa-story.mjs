@@ -36,7 +36,13 @@ const FILES = [
   'src/data/chapters/chapter3.js',
   'src/data/chapters/chapter4.js',
   'src/data/chapters/chapter5.js',
-  'src/data/chapters/chapter6.js'
+  'src/data/chapters/chapter6.js',
+  'src/data/chapters/chapter7.js',
+  'src/data/chapters/chapter8.js',
+  'src/data/chapters/chapter9.js',
+  'src/data/chapters/chapter10.js',
+  /* last: it grafts route beats onto every chapter above */
+  'src/data/chapters/routes.js'
 ];
 
 for (const f of FILES) {
@@ -49,7 +55,7 @@ for (const f of FILES) {
 }
 
 const NI = ctx.NI;
-const CH = [1, 2, 3, 4, 5, 6].map(n => NI.story['chapter' + n]);
+const CH = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => NI.story['chapter' + n]);
 const BATTLES = new Set(Object.keys(NI.enemies?.encounters || {}));
 
 const problems = [];

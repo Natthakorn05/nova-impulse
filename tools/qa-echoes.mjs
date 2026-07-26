@@ -90,11 +90,19 @@ for (const id of NI.echoes.ALL_IDS) {
   }
 }
 
-for (const enemyId of Object.keys(NI.enemies.ENEMIES)) {
+/* Catching only ever happens on a Breach victory, so the rule is about the
+   Breach pools rather than about every stat block in the game: an enemy the
+   player can grind and never bind is the oversight worth failing on. Story
+   bosses are deliberately exempt — a pet version of the thing the plot is
+   about is worse than no pet at all. */
+const IN_POOLS = new Set(Object.values(NI.breach.POOLS).flat());
+for (const enemyId of IN_POOLS) {
   if (!NI.echoes.fromEnemy(enemyId)) {
-    problems.push(`enemy ${enemyId} has no Echo — defeating it can never drop one`);
+    problems.push(`enemy ${enemyId} is in a Breach pool but has no Echo — grinding it can never drop one`);
   }
 }
+const storyOnly = Object.keys(NI.enemies.ENEMIES)
+  .filter(id => !IN_POOLS.has(id) && !NI.echoes.fromEnemy(id));
 
 /* Breach must never generate a wave the stage cannot draw or the engine
    cannot resolve. */
@@ -247,6 +255,9 @@ const need = pullsToComplete(200);
 console.log(`\nGacha: ${need} pulls to complete the roster ` +
             `(${need * NI.breach.PULL_COST} shards, about ` +
             `${Math.round(need * NI.breach.PULL_COST / (NI.breach.shardsFor(8) * 8))} full runs to wave 8)`);
+if (storyOnly.length) {
+  console.log(`Story-only (no Echo, by design): ${storyOnly.join(', ')}`);
+}
 
 /* An Echo that changes nothing is not a reward; one that carries the run
    makes the party irrelevant. Both are failures, and both are quiet.

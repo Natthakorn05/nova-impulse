@@ -468,6 +468,126 @@ NI.echoes = (function () {
         { name: 'Purge', icon: 'nova', power: 20, scaling: 'mag',
           target: 'allEnemies', element: 'arcane', weight: 2 }
       ]
+    },
+
+    /* ============================================================
+       The second-act catches (chapters 7-10).
+
+       The Breach now runs past wave 15 into the staging bestiary,
+       so these exist for the same reason the first thirteen do:
+       an enemy the player meets and cannot ever bind reads as an
+       oversight, and tools/qa-echoes.mjs treats it as one.
+
+       The four late bosses deliberately have no Echo. Continuity
+       Warden, Prior Build, the Architect and the Core are story
+       fights that never appear in a Breach pool, and a pet version
+       of the thing the whole plot is about would cheapen it.
+       ============================================================ */
+
+    greyling: {
+      id: 'greyling', name: 'Greyling', from: 'greyboxWalker',
+      star: 3, role: 'guard', element: 'physical',
+      chroma: 'magenta',
+      art: 'a small squat companion creature built from flat untextured grey development ' +
+           'blocks, plain matte grey slabs with visible seams, a checkerboard placeholder ' +
+           'square where its face would be, stubby limbs, rounded blocky silhouette',
+      blurb: 'Nobody ever finished it. It does not appear to have noticed, ' +
+             'and it has been extremely helpful ever since.',
+      base:   { hp: 92, atk: 11, mag: 5, def: 15, spd: 8, crit: 3, evade: 2 },
+      growth: { hp: 17, atk: 1.5, mag: 0.5, def: 2.0, spd: 0.7 },
+      aura:   { def: 2 },
+      skills: [
+        { name: 'Blunt Instance', icon: 'fist', power: 13, scaling: 'atk',
+          target: 'enemy', element: 'physical', weight: 3 },
+        { name: 'Placeholder', icon: 'guard', power: 0, scaling: 'def',
+          target: 'self', element: 'none', weight: 1,
+          selfBuff: { def: 10, turns: 2 } }
+      ]
+    },
+
+    strayling: {
+      id: 'strayling', name: 'Strayling', from: 'strayInstance',
+      star: 4, role: 'striker', element: 'arcane',
+      chroma: 'green',
+      art: 'a small translucent companion creature of pale blue light with a soft glowing ' +
+           'outline and no interior detail, trailing two faint duplicate afterimages of ' +
+           'itself half a step behind, rounded friendly silhouette, drifting just above the ground',
+      blurb: 'It has been repeating the same four seconds for four years. ' +
+             'It seems glad of the change.',
+      base:   { hp: 58, atk: 13, mag: 16, def: 6, spd: 21, crit: 15, evade: 17 },
+      growth: { hp: 11, atk: 2.2, mag: 2.6, def: 0.9, spd: 1.8 },
+      aura:   { spd: 2 },
+      skills: [
+        { name: 'Repeat Action', icon: 'link', power: 11, scaling: 'mag',
+          target: 'enemy', element: 'arcane', weight: 3, hits: 2 },
+        { name: 'Desync', icon: 'stun', power: 9, scaling: 'mag',
+          target: 'enemy', element: 'arcane', weight: 2,
+          status: { type: 'slow', chance: 0.5, turns: 2 } }
+      ]
+    },
+
+    iterling: {
+      id: 'iterling', name: 'Iterling', from: 'iterationEcho',
+      star: 4, role: 'striker', element: 'arcane',
+      chroma: 'green',
+      art: 'a small companion creature made of dark violet glass with a faint golden number ' +
+           'etched glowing on its chest, smooth blank rounded face, two tiny thin blades ' +
+           'held low, compact alert stance',
+      blurb: 'A draft of something. It will not say which attempt it came ' +
+             'from and gets visibly uncomfortable when asked.',
+      base:   { hp: 66, atk: 15, mag: 13, def: 9, spd: 17, crit: 18, evade: 11 },
+      growth: { hp: 12, atk: 2.7, mag: 2.0, def: 1.2, spd: 1.5 },
+      aura:   { crit: 3 },
+      skills: [
+        { name: 'Same Opening', icon: 'slash', power: 14, scaling: 'atk',
+          target: 'enemy', element: 'arcane', weight: 3, critBonus: 12 },
+        { name: 'Known Answer', icon: 'mark', power: 7, scaling: 'atk',
+          target: 'enemy', element: 'arcane', weight: 2,
+          status: { type: 'mark', chance: 1, turns: 3, power: 0.25 } }
+      ]
+    },
+
+    scribeling: {
+      id: 'scribeling', name: 'Scribeling', from: 'archivistShell',
+      star: 4, role: 'guard', element: 'light',
+      chroma: 'magenta',
+      art: 'a small hunched robed companion creature of pale bone-white ceramic with no face, ' +
+           'carrying an open ledger of glowing amber pages almost too big for it, ' +
+           'thin gold filaments trailing from its shoulders, rounded appealing silhouette',
+      blurb: 'It writes down everything you do. You have read some of it. ' +
+             'It is kinder about you than you are.',
+      base:   { hp: 100, atk: 10, mag: 14, def: 17, spd: 9, crit: 4, evade: 3 },
+      growth: { hp: 18, atk: 1.4, mag: 2.1, def: 2.1, spd: 0.8 },
+      aura:   { def: 2 },
+      skills: [
+        { name: 'File Away', icon: 'trap', power: 12, scaling: 'mag',
+          target: 'enemy', element: 'light', weight: 3,
+          status: { type: 'stun', chance: 0.22, turns: 1 } },
+        { name: 'Seal Record', icon: 'barrier', power: 0, scaling: 'def',
+          target: 'self', element: 'none', weight: 1,
+          selfBuff: { def: 12, turns: 2 } }
+      ]
+    },
+
+    coreling: {
+      id: 'coreling', name: 'Coreling', from: 'coreAspect',
+      star: 5, role: 'striker', element: 'storm',
+      chroma: 'orange',
+      art: 'a small floating shard of solid opaque white stone with hard-cut facets, ' +
+           'held inside two small dark gunmetal rings with visible bolts, ' +
+           'a thin slot of cyan light glowing between them, ' +
+           'compact rounded silhouette, matte solid surfaces',
+      blurb: 'A piece of the thing eleven people could not finish. ' +
+             'It hums when it is pleased, which is most of the time.',
+      base:   { hp: 74, atk: 15, mag: 21, def: 9, spd: 22, crit: 17, evade: 12 },
+      growth: { hp: 13, atk: 2.4, mag: 3.1, def: 1.2, spd: 1.7 },
+      aura:   { spd: 2, crit: 2 },
+      skills: [
+        { name: 'Impulse', icon: 'bolt', power: 17, scaling: 'mag',
+          target: 'enemy', element: 'storm', weight: 3, hits: 2, lifesteal: 0.25 },
+        { name: 'Cascade', icon: 'nova', power: 16, scaling: 'mag',
+          target: 'allEnemies', element: 'storm', weight: 2 }
+      ]
     }
   };
 

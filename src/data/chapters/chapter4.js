@@ -182,7 +182,7 @@ NI.story.chapter4 = {
                  <p>"It copied me," she says. "It was copying me the whole fight."</p>
                  <p>"It was recording," Kirito says quietly. "Both of us. That's what it was for."</p>`
       },
-      next: 'c4_golem'
+      next: 'rt4_hub'
     },
 
     c4_golem: {

@@ -35,10 +35,16 @@ NI.breach = (function () {
   /* Drawn from the enemies the player has already met, so a Breach reads as
      "the world is leaking" rather than as a separate minigame with its own
      bestiary. Grouped by how hard they hit rather than by chapter. */
+  /* `deep` is the staging bestiary from chapters 7-10. It exists because the
+     Breach used to top out at the chapter-5 roster, so a run past wave 15 was
+     the same four enemies at ever-larger multipliers — the numbers got bigger
+     and nothing got more interesting. It also gives the second act's art a
+     reason to appear outside the story, and its members something to drop. */
   const POOLS = {
     light: ['shardSlime', 'dataWisp', 'rustHound', 'sentryDrone'],
     mid:   ['brambleWarden', 'cinderMoth', 'voidStalker', 'glitchBoar'],
     heavy: ['hollowKnight', 'siegeGolem', 'echoDuelist'],
+    deep:  ['greyboxWalker', 'strayInstance', 'iterationEcho', 'archivistShell', 'coreAspect'],
     apex:  ['nullSeraph', 'wardenPrime']
   };
 
@@ -67,7 +73,8 @@ NI.breach = (function () {
     if (wave <= 3)  return r < 0.75 ? POOLS.light : POOLS.mid;
     if (wave <= 8)  return r < 0.45 ? POOLS.light : POOLS.mid;
     if (wave <= 14) return r < 0.40 ? POOLS.mid   : POOLS.heavy;
-    return r < 0.25 ? POOLS.mid : POOLS.heavy;
+    if (wave <= 19) return r < 0.55 ? POOLS.heavy : POOLS.deep;
+    return r < 0.25 ? POOLS.heavy : POOLS.deep;
   }
 
   /** How many enemies a wave fields. Capped at 3 — the stage fits three. */
