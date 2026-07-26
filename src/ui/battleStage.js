@@ -20,6 +20,7 @@ NI.stage = (function () {
   let scene = null;
   let ready = false;
   const sprites = {};      // uid -> Phaser image/container
+  let waiting = [];        // work queued before the scene finished booting
 
   const DESIGN_W = 900;
   const DESIGN_H = 300;
@@ -45,6 +46,11 @@ NI.stage = (function () {
       create() {
         ready = true;
         this.impacts = this.add.group();
+        /* Anything that asked for the stage while it was still booting runs
+           now, in the order it was requested. */
+        const queued = waiting;
+        waiting = [];
+        for (const fn of queued) fn();
       },
 
       update() {
@@ -88,6 +94,22 @@ NI.stage = (function () {
 
   function isReady() { return ready && !!scene; }
 
+  /**
+   * Run `fn` once the scene exists, or immediately if it already does.
+   *
+   * Callers used to guess with `setTimeout(..., 60)` and drop the work
+   * silently if Phaser hadn't finished booting yet — a cold load parsing
+   * 1.2MB of vendored Phaser loses that race, and nothing ever retried, so
+   * the battle ran to completion against an empty canvas. If Phaser never
+   * boots at all the queue simply never drains, which is the intended
+   * DOM-only degradation.
+   */
+  function whenReady(fn) {
+    if (isReady()) return fn();
+    if (typeof Phaser === 'undefined') return;   // no stage, ever — drop it
+    waiting.push(fn);
+  }
+
   /* ------------------------------------------------------------
      Populating the field
      ------------------------------------------------------------ */
@@ -106,40 +128,58 @@ NI.stage = (function () {
    * @param {Array} foes battle units
    */
   function setFoes(foes) {
-    if (!isReady()) return;
+    whenReady(() => placeFoes(foes));
+  }
+
+  function placeFoes(foes) {
     clear();
 
     const n = foes.length;
     foes.forEach((foe, i) => {
       const x = DESIGN_W * ((i + 1) / (n + 1));
       const y = DESIGN_H * 0.58;
-      const key = 'art_' + foe.uid;
+      /* Keyed by ENEMY, not by unit. Keying on foe.uid ("foe0", "foe1") means
+         slot 0 of every battle shares one texture key, and Phaser refuses to
+         overwrite a key that already exists — so from the second encounter
+         onward every foe wore the first encounter's art. */
+      const key = 'art_' + foe.enemyId;
       const src = NI.art.url('enemy_' + foe.enemyId);
 
-      if (src) {
-        /* real generated art */
-        scene.load.image(key, src);
-        scene.load.once('complete', () => {
-          if (!scene.textures.exists(key)) return;
-          const img = scene.add.image(x, y, key);
-          const scale = Math.min(170 / img.height, 190 / img.width);
-          img.setScale(scale);
-          register(foe.uid, img, y, i);
-        });
-        scene.load.start();
-      } else {
-        /* procedural stand-in so battles are legible before art exists */
-        const c = scene.add.container(x, y);
-        const body = scene.add.image(0, 0, 'px')
-          .setDisplaySize(78, 108).setTint(0xff5f6d).setAlpha(0.42);
-        const core = scene.add.image(0, -14, 'px')
-          .setDisplaySize(40, 40).setTint(0xff9aa4).setAlpha(0.85);
-        const base = scene.add.image(0, 62, 'px')
-          .setDisplaySize(96, 5).setTint(0x000000).setAlpha(0.5);
-        c.add([base, body, core]);
-        register(foe.uid, c, y, i);
-      }
+      if (!src) return placeholderFoe(foe, x, y, i);
+
+      if (scene.textures.exists(key)) return addFoeImage(foe, key, x, y, i);
+
+      /* Listen for THIS file rather than the loader's global 'complete'.
+         Two foes sharing one enemy type queue the same key twice; a global
+         handler fires for both and double-adds. */
+      scene.load.once('filecomplete-image-' + key, () => addFoeImage(foe, key, x, y, i));
+      scene.load.once('loaderror', (file) => {
+        if (file && file.key === key) placeholderFoe(foe, x, y, i);
+      });
+      scene.load.image(key, src);
+      scene.load.start();
     });
+  }
+
+  function addFoeImage(foe, key, x, y, i) {
+    if (!isReady() || !scene.textures.exists(key)) return;
+    const img = scene.add.image(x, y, key);
+    img.setScale(Math.min(170 / img.height, 190 / img.width));
+    register(foe.uid, img, y, i);
+  }
+
+  /** Procedural stand-in so battles stay legible when art is missing. */
+  function placeholderFoe(foe, x, y, i) {
+    if (!isReady()) return;
+    const c = scene.add.container(x, y);
+    const body = scene.add.image(0, 0, 'px')
+      .setDisplaySize(78, 108).setTint(0xff5f6d).setAlpha(0.42);
+    const core = scene.add.image(0, -14, 'px')
+      .setDisplaySize(40, 40).setTint(0xff9aa4).setAlpha(0.85);
+    const base = scene.add.image(0, 62, 'px')
+      .setDisplaySize(96, 5).setTint(0x000000).setAlpha(0.5);
+    c.add([base, body, core]);
+    register(foe.uid, c, y, i);
   }
 
   function register(uid, obj, baseY, i) {
@@ -232,9 +272,25 @@ NI.stage = (function () {
     };
   }
 
+  /**
+   * Inspection hook for QA tooling. Rendering is driven by
+   * requestAnimationFrame, which browsers pause on a hidden page — so an
+   * automated check can't confirm anything is actually drawn without being
+   * able to reach the game and step it by hand.
+   */
+  function _debug() {
+    return {
+      game, scene, sprites,
+      spriteKeys: Object.keys(sprites),
+      textureKeys: scene ? scene.textures.getTextureKeys().filter(k => k.startsWith('art_')) : [],
+      /* force one update+render tick regardless of rAF */
+      step() { if (game) game.step(performance.now(), 16); }
+    };
+  }
+
   return {
     init, isReady, setFoes, clear,
     flashHit, lunge, elementFlash, fadeOut, burst, screenPos,
-    DESIGN_W, DESIGN_H
+    _debug, DESIGN_W, DESIGN_H
   };
 })();

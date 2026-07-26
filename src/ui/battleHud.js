@@ -52,8 +52,10 @@ NI.hud = (function () {
     el.targets.hidden = true;
 
     NI.stage.init(el.canvas);
-    /* Phaser boots a frame late; give it a tick before placing sprites. */
-    setTimeout(() => NI.stage.setFoes(B.foes), 60);
+    /* setFoes queues internally until the scene exists, so there is nothing
+       to time here. The old 60ms guess dropped the sprites outright whenever
+       Phaser booted slower than that. */
+    NI.stage.setFoes(B.foes);
 
     logLine('sys', `Encounter started — ${B.name}.`);
     renderAll();
