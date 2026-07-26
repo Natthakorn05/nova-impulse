@@ -52,7 +52,11 @@
     linear-gradient(180deg, #0c1424, #070b13);
   overflow: hidden;
 }
-#bt-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* Size and offset are set inline by Phaser's Scale Manager (FIT + centre
+   against .bt-field). Declaring width/height/inset here is pointless — inline
+   styles win — and actively misleading, because it reads as though CSS
+   controls the canvas when it does not. */
+#bt-canvas { position: absolute; top: 0; left: 0; display: block; }
 
 .bt-foes {
   position: absolute; inset: 0;

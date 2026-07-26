@@ -78,10 +78,22 @@ NI.stage = (function () {
            enough that the canvas renderer costs nothing. */
         type: Phaser.CANVAS,
         canvas,
-        width: DESIGN_W,
-        height: DESIGN_H,
         transparent: true,
-        scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+        /* `parent` is not optional here. Passing an existing canvas does NOT
+           tell the Scale Manager what to fit inside — without it Phaser
+           measures document.body and fits the whole window, then centres
+           against the window too. That produced a 1398x466 canvas with
+           margin-top:402px inside a 912x280 .bt-field with overflow:hidden,
+           so every sprite rendered correctly and was clipped entirely out of
+           view. The stage looked broken while the renderer was fine. */
+        scale: {
+          parent: canvas.parentElement || undefined,
+          width: DESIGN_W,
+          height: DESIGN_H,
+          mode: Phaser.Scale.FIT,
+          autoCenter: Phaser.Scale.CENTER_BOTH,
+          expandParent: false
+        },
         scene: makeScene(),
         banner: false,
         audio: { noAudio: true }
