@@ -10,6 +10,10 @@
   # for the previous version of the code.
   command = "node tools/stamp.mjs && node tools/build-dist.mjs"
   publish = "dist"
+  # Functions live outside `publish` on purpose: dist/ is the public site and
+  # build-dist.mjs allow-lists what goes in it. Server code must never be
+  # reachable as a static file.
+  functions = "netlify/functions"
 
 # index.html must always be revalidated, because it carries the ?v= content
 # hashes that invalidate everything else. If it is cached, a deploy changes

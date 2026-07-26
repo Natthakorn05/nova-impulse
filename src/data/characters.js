@@ -51,6 +51,96 @@ NI.characters = (function () {
     }
   };
 
+  /* ============================================================
+     Romance cast (§11) — the six who arrive after Chapter 5.
+
+     These are NOT leads. The player always plays Kirito or Masha;
+     these six are people you can end up with instead of your
+     starting partner, and each one is written to pull the story a
+     different direction rather than to be a different flavour of
+     the same scene.
+
+     `voice` drives both the written prose and the AI companion
+     chat, which is why it is specific about how they cope rather
+     than just how they sound — a voice note that says "friendly"
+     produces a chatbot; one that says "deflects with logistics"
+     produces a character.
+
+     `route` is the flag prefix owned by that character, so route
+     content can be found and audited by tools/qa-story.mjs.
+     ============================================================ */
+
+  const ROMANCE = {
+    kazuma: {
+      id: 'kazuma', name: 'Kazuma', route: 'r_kazuma', gender: 'm',
+      title: 'The one who logged out and came back',
+      voice: 'Blunt, unimpressed, allergic to ceremony. Says the cynical thing ' +
+             'first and the kind thing second, quietly, as if hoping you missed it. ' +
+             'Copes by refusing to treat anything as sacred.',
+      color: '#e0803a',
+      hook: 'He found the exit in Chapter 2. He came back anyway, and will not ' +
+            'say why.'
+    },
+    yuji: {
+      id: 'yuji', name: 'Yuji', route: 'r_yuji', gender: 'm',
+      title: 'The one carrying something else',
+      voice: 'Warm, direct, relentlessly decent, and visibly running on empty. ' +
+             'Reassures other people as a way of not being asked how he is. ' +
+             'Copes by volunteering for whatever costs the most.',
+      color: '#d94f4f',
+      hook: 'Something in him answers when the Breach opens. He has stopped ' +
+            'pretending it does not.'
+    },
+    uzui: {
+      id: 'uzui', name: 'Uzui', route: 'r_uzui', gender: 'm',
+      title: 'The one who makes an entrance',
+      voice: 'Loud, theatrical, extravagantly confident, and far more observant ' +
+             'than the performance suggests. Notices the thing nobody said. ' +
+             'Copes by being too large to look past.',
+      color: '#c77dff',
+      hook: 'He runs the only safe house in the Nexus and treats it like a stage.'
+    },
+    chizuru: {
+      id: 'chizuru', name: 'Chizuru', route: 'r_chizuru', gender: 'f',
+      title: 'The one who is always working',
+      voice: 'Composed, precise, faintly exasperated. Answers the question you ' +
+             'should have asked instead of the one you did. Copes by being ' +
+             'competent at something adjacent to the problem.',
+      color: '#ff6f91',
+      hook: 'She has been mapping the Breach since before you arrived and has ' +
+            'told nobody what she found.'
+    },
+    airi: {
+      id: 'airi', name: 'Airi', route: 'r_airi', gender: 'f',
+      title: 'The one who remembers the patches',
+      voice: 'Quiet, watchful, speaks in short complete sentences and means all ' +
+             'of them. Long pauses that are thinking, not hesitation. Copes by ' +
+             'recording everything.',
+      color: '#5fd1c9',
+      hook: 'She remembers versions of the world that no longer exist, including ' +
+            'ones you were in.'
+    },
+    matikane: {
+      id: 'matikane', name: 'Matikanetannhauser', route: 'r_matikane', gender: 'f',
+      title: 'The one who will not stop running',
+      voice: 'Earnest to the point of alarming, enormous enthusiasm, no volume ' +
+             'control, and a streak of real stubbornness under it. Copes by ' +
+             'setting off before anyone can argue.',
+      color: '#ffd166',
+      /* Everyone shortens it. She has never once objected, and has never once
+         used the short form herself. */
+      short: 'Mati',
+      hook: 'She has never finished a race in this world. She intends to.'
+    }
+  };
+
+  const ROMANCE_IDS = Object.keys(ROMANCE);
+
+  function romance(id) { return ROMANCE[id] || null; }
+
+  /** Everyone the player can be in a scene with, leads included. */
+  function anyone(id) { return LEADS[id] || ROMANCE[id] || null; }
+
   /** Given the controlled path, who is the companion? */
   function companionOf(path) {
     return path === 'kirito' ? 'masha' : 'kirito';
@@ -98,5 +188,9 @@ NI.characters = (function () {
     return me.calledBy[stage] || me.calledBy.low || me.name;
   }
 
-  return { LEADS, lead, companionOf, resolve, trustStage, addressPlayer, TRUST_STAGES };
+  return {
+    LEADS, ROMANCE, ROMANCE_IDS,
+    lead, romance, anyone, companionOf, resolve,
+    trustStage, addressPlayer, TRUST_STAGES
+  };
 })();

@@ -686,3 +686,47 @@ body::before {
 .br-line span { font-family: var(--mono); font-size: 10px; letter-spacing: .13em; color: var(--text-mute); }
 .br-line b { font-family: var(--mono); font-size: 17px; color: var(--cyan); }
 .br-new { font-size: 12.5px; color: var(--green); margin-top: 10px; }
+
+
+/* ============================================================
+   Talk — AI companion conversation (§11)
+   ============================================================ */
+
+.tk-cast { display: flex; gap: 7px; flex-wrap: wrap; padding: 12px 14px 0; }
+.tk-who {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+  padding: 6px 11px; cursor: pointer; color: var(--text-dim);
+  background: var(--bg-2); border: 1px solid var(--line);
+}
+.tk-who.on { color: #fff; border-color: var(--c, var(--cyan)); box-shadow: 0 0 10px -2px var(--c, var(--cyan)); }
+.tk-who.locked { opacity: .35; cursor: not-allowed; }
+
+.tk-log {
+  flex: 1; min-height: 240px; overflow-y: auto; margin: 12px 14px;
+  padding: 12px 14px; border: 1px solid var(--line); background: rgba(0,0,0,.3);
+}
+.tk-msg { margin: 0 0 12px; font-size: 13.5px; line-height: 1.6; max-width: 82%; }
+.tk-msg:last-child { margin-bottom: 0; }
+.tk-msg .tk-name {
+  display: block; font-family: var(--mono); font-size: 9.5px;
+  letter-spacing: .14em; margin-bottom: 3px;
+}
+.tk-msg.them { color: var(--text); }
+.tk-msg.them .tk-name { color: var(--c, var(--cyan)); }
+.tk-msg.me { margin-left: auto; text-align: right; color: var(--text-dim); }
+.tk-msg.me .tk-name { color: var(--text-mute); }
+.tk-msg.sys { color: var(--amber); font-family: var(--mono); font-size: 11.5px; max-width: 100%; }
+/* Model output is inserted as text, never as HTML — see talk.js. */
+.tk-msg p { margin: 0 0 7px; }
+.tk-msg p:last-child { margin-bottom: 0; }
+
+.tk-input { display: flex; gap: 8px; padding: 0 14px 14px; }
+.tk-input input {
+  flex: 1; min-width: 0; font-family: var(--sans); font-size: 14px;
+  color: var(--text); background: var(--bg-2);
+  border: 1px solid var(--line-hot); padding: 12px 13px; outline: none;
+}
+.tk-input input:focus { border-color: var(--cyan); box-shadow: var(--glow-cyan); }
+.tk-input input:disabled { opacity: .5; }
+
+.tk-typing { color: var(--text-mute); font-style: italic; }

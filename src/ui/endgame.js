@@ -337,6 +337,8 @@ NI.endgame = (function () {
     $('nx-breach').addEventListener('click', startBreach);
     $('nx-echoes').addEventListener('click', showRoster);
     $('nx-summon').addEventListener('click', showSummon);
+    $('nx-talk').addEventListener('click', () => NI.talk.open(state, { back: showHub }));
+    NI.talk.bind();
     $('nx-leave').addEventListener('click', () => { if (host.toTitle) host.toTitle(); });
 
     $('ec-back').addEventListener('click', showHub);

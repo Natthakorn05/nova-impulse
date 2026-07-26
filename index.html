@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>NOVA IMPULSE</title>
-<link rel="stylesheet" href="styles/main.css?v=06c2f177">
+<link rel="stylesheet" href="styles/main.css?v=0874682d">
 <link rel="stylesheet" href="styles/battle.css?v=099fa2c8">
 </head>
 <body>
@@ -145,6 +145,7 @@
         <button class="btn btn-primary" id="nx-breach">ENTER BREACH</button>
         <button class="btn" id="nx-echoes">ECHOES</button>
         <button class="btn" id="nx-summon">SUMMON</button>
+        <button class="btn" id="nx-talk">TALK</button>
         <button class="btn btn-ghost" id="nx-leave">TITLE</button>
       </div>
     </div>
@@ -174,6 +175,24 @@
       <div class="panel-actions">
         <button class="btn btn-primary" id="sm-pull">SUMMON</button>
       </div>
+    </div>
+  </section>
+
+  <!-- ===================== TALK (AI companion) ===================== -->
+  <section id="screen-talk" class="screen">
+    <header class="hud-bar">
+      <div class="hud-left"><span class="hud-chapter">RELAY</span><span class="hud-title" id="tk-who"></span></div>
+      <div class="hud-right">
+        <button class="btn btn-ghost btn-sm" id="tk-clear">CLEAR</button>
+        <button class="btn btn-ghost btn-sm" id="tk-back">BACK</button>
+      </div>
+    </header>
+    <div class="tk-cast" id="tk-cast"></div>
+    <div class="tk-log" id="tk-log"></div>
+    <div class="tk-input">
+      <input id="tk-text" type="text" maxlength="400" autocomplete="off"
+             placeholder="Say something…">
+      <button class="btn btn-primary" id="tk-send">SEND</button>
     </div>
   </section>
 
@@ -220,7 +239,7 @@
 <script src="src/data/icons.js?v=e370ae77"></script>
 <script src="src/data/classes.js?v=2fab23c4"></script>
 <script src="src/data/enemies.js?v=55025de9"></script>
-<script src="src/data/characters.js?v=e70a1f04"></script>
+<script src="src/data/characters.js?v=7af3b384"></script>
 <script src="src/data/echoes.js?v=6ae61145"></script>
 <script src="src/data/breach.js?v=84521970"></script>
 <script src="src/data/collection.js?v=1b5e113b"></script>
@@ -245,7 +264,9 @@
 <script src="src/ui/battleHud.js?v=f5f9c0cf"></script>
 <script src="src/ui/skillTree.js?v=de6aede4"></script>
 <script src="src/ui/screens.js?v=7a6624d8"></script>
-<script src="src/ui/endgame.js?v=efd1c826"></script>
+<script src="src/ai/companion.js?v=80f2eb2a"></script>
+<script src="src/ui/talk.js?v=5c7a44fb"></script>
+<script src="src/ui/endgame.js?v=598b6d4d"></script>
 
 <!-- boot -->
 <script src="src/main.js?v=8bf8d588"></script>
