@@ -41,9 +41,12 @@ NI.enemies = (function () {
       chroma: 'orange',
       /* "not a humanoid figure, no arms, no legs" produced a humanoid with arms
          and legs — this model does not honour negations. Say what it IS. */
-      art: 'a will-o-wisp: a single floating orb of brilliant cyan light with a white-hot core, ' +
-           'trailing long ribbons of glowing code fragments and sparks behind it like a comet tail, ' +
-           'formless drifting energy, entirely cyan and white',
+      /* Rebuilt around an opaque core for the same reason echo_wispling was:
+         a subject that is nothing but glow gives the chroma key no edge to cut
+         against, and the cutout took bites out of it. */
+      art: 'a floating spirit with a solid opaque faceted crystal core of pale blue glass ' +
+           'at its centre, wrapped in a tight halo of brilliant cyan light, ' +
+           'short ribbons of glowing code fragments trailing behind it, entirely cyan and white',
       skills: [
         { name: 'Static Lash', icon: 'bolt', power: 12, scaling: 'mag', target: 'enemy', weight: 3 },
         { name: 'Scramble',    icon: 'stun', power: 6,  scaling: 'mag', target: 'enemy', weight: 1,
@@ -117,8 +120,9 @@ NI.enemies = (function () {
       hp: 125, atk: 12, def: 8, mag: 20, spd: 20, crit: 10, evade: 18, xp: 44,
       element: 'fire',
       chroma: 'magenta',
-      art: 'a large moth with burning ember wings trailing orange sparks and ash, charcoal black ' +
-           'body, glowing amber compound eyes, wings edged in live fire',
+      art: 'a large moth with solid opaque charcoal-black body and solid opaque wing membranes ' +
+           'patterned in deep orange and black, a hard clean wing outline, ' +
+           'glowing amber compound eyes, a thin line of live fire along the wing edges only',
       skills: [
         { name: 'Ember Dust', icon: 'flame', power: 15, scaling: 'mag', target: 'allEnemies', weight: 2,
           status: { type: 'burn', chance: 0.4, turns: 2, power: 4 } },
@@ -271,10 +275,15 @@ NI.enemies = (function () {
       id: 'strayInstance', name: 'Stray Instance', tier: 'trash', chapter: 7,
       hp: 450, atk: 39, def: 23, mag: 42, spd: 26, crit: 14, evade: 16, xp: 70,
       element: 'arcane',
-      chroma: 'green',
-      art: 'a translucent person-shaped silhouette of pale blue light with a soft glowing outline ' +
-           'and no interior detail, trailing faint duplicate afterimages of itself half a step ' +
-           'behind, like a recording of a person rather than a person',
+      /* Pale blue on green left almost nothing but a head — the key could not
+         separate frosted pale blue from chroma green. echo_shardling already
+         records the rule for this palette: a pale-blue-and-white subject has
+         nowhere to hide from a near key and belongs on orange, its complement. */
+      chroma: 'orange',
+      art: 'a person-shaped figure of solid opaque pale blue frosted glass with a clean hard ' +
+           'silhouette and no facial detail, a brighter cyan light glowing inside its chest, ' +
+           'one faint duplicate afterimage close behind it, ' +
+           'like a mannequin of a person rather than a person',
       skills: [
         { name: 'Repeat Action', icon: 'link',  power: 17, scaling: 'mag', target: 'enemy', weight: 3, hits: 2 },
         { name: 'Desync',        icon: 'stun',  power: 14, scaling: 'mag', target: 'enemy', weight: 2,

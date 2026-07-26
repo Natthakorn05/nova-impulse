@@ -205,7 +205,8 @@ NI.echoes = (function () {
       id: 'emberling', name: 'Emberling', from: 'cinderMoth',
       star: 4, role: 'striker', element: 'fire',
       chroma: 'magenta',
-      art: 'a small moth with burning ember wings trailing orange sparks and ash, ' +
+      art: 'a small moth companion with a solid opaque charcoal body and solid opaque wings ' +
+           'patterned deep orange and black with a hard clean outline, ' +
            'charcoal black fuzzy body, glowing amber compound eyes, wings edged in ' +
            'live fire',
       blurb: 'Burns through its own wings and regrows them nightly. Nobody ' +
@@ -421,10 +422,7 @@ NI.echoes = (function () {
       /* 16% green cast on the first draw. Negations do not work on this
          model, so the fix is to state what the light IS — warm white and
          amber — rather than what it must not be. */
-      art: 'a small angelic construct in polished ivory white and warm gold plating, a ' +
-           'smooth featureless curved mask, four small geometric wings made of solid ' +
-           'warm white and amber light, a thin gold halo, hovering serenely, ' +
-           'entirely white and gold and amber',
+      art: 'a small angelic companion in solid opaque polished cream and pale gold ceramic plating, a smooth featureless faceplate, four solid opaque geometric wings of hard cream and gold plate with clean edges, a thin gold ring above its head, rounded appealing silhouette',
       blurb: 'It has no face and will not explain itself. It heals you ' +
              'anyway, on a schedule, whether or not you asked.',
       base:   { hp: 96, atk: 14, mag: 22, def: 13, spd: 15, crit: 9, evade: 8 },

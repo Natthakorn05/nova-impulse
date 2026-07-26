@@ -154,6 +154,22 @@ NI.characters = (function () {
 
   const ROUTE_IDS = ROMANCE_IDS.concat(['partner']);
 
+  /**
+   * The routes offered to a given lead.
+   *
+   * Playing Kirito offers the three women and Masha; playing Masha offers the
+   * three men and Kirito. The partner option qualifies on either path by
+   * construction, since the two leads are the pair.
+   *
+   * `path` rather than `gender` is the input on purpose: `path` is the lead
+   * you actually control and is what every other function here takes, and the
+   * two cannot disagree (freshState derives one from the other).
+   */
+  function routesFor(path) {
+    const want = path === 'kirito' ? 'f' : 'm';
+    return ROUTE_IDS.filter(id => id === 'partner' || ROMANCE[id].gender === want);
+  }
+
   /** The actual person a route points at, given who you control. */
   function routePerson(route, path) {
     if (route === 'partner') return LEADS[companionOf(path)];
@@ -221,7 +237,7 @@ NI.characters = (function () {
 
   return {
     LEADS, ROMANCE, ROMANCE_IDS, ROUTE_IDS,
-    lead, romance, anyone, companionOf, resolve, routePerson, routeName,
+    lead, romance, anyone, companionOf, resolve, routePerson, routeName, routesFor,
     trustStage, addressPlayer, TRUST_STAGES
   };
 })();

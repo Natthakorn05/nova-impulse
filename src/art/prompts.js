@@ -76,6 +76,7 @@
     /* Added after a pass came back as heavy shonen poster art: these are the
        specific renderings that read as a different show from the rest of the
        cast, and the models reach for them the moment "anime" is unqualified. */
+    'exactly two arms and two hands, exactly five fingers on each hand, ' +
     'no thick black outlines, no heavy ink, no harsh angular faces, ' +
     'no oversaturated colours, no comic book style, no western cartoon style';
 
@@ -93,6 +94,13 @@
     magenta: 'isolated on a completely flat solid magenta background (#ff00d0), ' +
              'uniform background with no gradient, no shadow cast on the background' + PURE,
     orange:  'isolated on a completely flat solid orange background (#ff7a00), ' +
+             'uniform background with no gradient, no shadow cast on the background' + PURE,
+    /* Added for Matikanetannhauser, whose palette defeated all three of the
+       others at once: blonde and gold sit next to green, amber sits next to
+       orange, and warm skin with a blush sits next to magenta. Every key ate
+       part of her. She has no blue anywhere, so blue is the only colour that
+       is far from all of it. */
+    blue:    'isolated on a completely flat solid pure blue background (#0040ff), ' +
              'uniform background with no gradient, no shadow cast on the background' + PURE
   };
 
@@ -218,19 +226,26 @@
     'an ornate sleeveless dark tunic with gold trim and layered bead jewellery, ' +
     'both arms opened outward in a welcoming gesture';
 
+  /* HANDS HOLDING THINGS ARE WHERE THESE MODELS FAIL.
+     Four separate failures in one session, all of them a hand interacting
+     with an object: Yuji's hand mangled twice reaching for his own forearm,
+     Chizuru given six fingers around a rolled map, and Airi's second arm
+     omitted entirely while both hands were supposed to hold a notebook.
+     Arms folded or at rest come back correct essentially every time.
+     Props belong in the prose, not in a bust-up portrait. */
   const CHIZURU =
     'a composed young woman, calm refined face, ' +
     'long straight dark red hair, sharp pink eyes, ' +
     'faintly exasperated patient expression, ' +
     'a fitted charcoal work coat over a white collared shirt, ' +
-    'a rolled paper map held under one arm';
+    'arms folded, empty hands';
 
   const AIRI =
     'a quiet slight young woman, gentle rounded face, ' +
     'short pale teal bob-cut hair with a soft fringe, large calm grey eyes, ' +
     'neutral thoughtful expression, ' +
     'a soft oversized cream cardigan over a dark dress, ' +
-    'a small worn notebook held against her chest with both hands';
+    'both arms relaxed down at her sides, empty hands';
 
   const MATIKANE =
     'an energetic young woman, bright open face, ' +
@@ -263,7 +278,11 @@
       subject: CHIZURU },
     { key: 'airi_portrait',     kind: 'portrait', ratio: '1:1', chroma: 'magenta',
       subject: AIRI },
-    { key: 'matikane_portrait', kind: 'portrait', ratio: '1:1', chroma: 'magenta',
+    /* Was magenta, which the key then could not distinguish from her — warm
+       skin, pink blush and a white-and-amber kit are all close enough to a
+       magenta backdrop that the cutout punched holes through her face and
+       jacket. Nothing about her palette is green. */
+    { key: 'matikane_portrait', kind: 'portrait', ratio: '1:1', chroma: 'blue',
       subject: MATIKANE },
 
     /* --- scenes keep their backgrounds --- */

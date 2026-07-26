@@ -42,12 +42,14 @@ const manifest = [
   ...P.echoManifest(ctx.NI.echoes.ECHOES)
 ];
 
-const RGB = { green: [0x00, 0xb1, 0x40], magenta: [0xff, 0x00, 0xd0], orange: [0xff, 0x7a, 0x00] };
+const RGB = { green: [0x00, 0xb1, 0x40], magenta: [0xff, 0x00, 0xd0], orange: [0xff, 0x7a, 0x00],
+              blue: [0x00, 0x40, 0xff] };
 
 /** How strongly a pixel leans toward the chroma hue, on the axis that matters. */
 function castOf(name, r, g, b) {
   if (name === 'green')   return g - Math.max(r, b);
   if (name === 'magenta') return Math.min(r, b) - g;
+  if (name === 'blue')    return b - Math.max(r, g);
   return r - b - Math.max(0, g - 0x7a);   /* orange */
 }
 
@@ -96,6 +98,70 @@ for (const entry of manifest) {
     satSum += mx === 0 ? 0 : (mx - mn) / mx;
   }
 
+  /* ---- holes punched through the subject ----
+     The failure this exists for: Matikanetannhauser was generated on magenta
+     with warm skin, pink blush and a white-and-amber kit, and the key could
+     not tell her face from the backdrop. It removed the background AND ate
+     chunks out of her jacket, her hair and her cheek — and every existing
+     check passed her, because residue was 0 (the backdrop went), cast was 0
+     (nothing was tinted) and coverage was healthy (most of her survived).
+     "Most of her survived" is not a standard.
+
+     Defining a hole is the whole difficulty. The first attempt called any
+     transparent pixel with subject on all four sides a hole, and flagged 43
+     of 51 assets — because the gap between an arm and a torso is also
+     enclosed on four sides, and a moth with open wings scored 73%. That
+     measured SILHOUETTE, not damage.
+
+     What actually distinguishes key damage is that it is speckle: many small
+     enclosed islands. Legitimate negative space is a few large ones. So:
+     flood the transparent background inward from the border, take whatever
+     transparency it could not reach, and count only the components smaller
+     than a fingernail. */
+  let holes = 0;
+  {
+    const W2 = img.width, H2 = img.height, D2 = img.data;
+    const N = W2 * H2;
+    const clear = new Uint8Array(N);          // transparent
+    for (let i = 0; i < N; i++) clear[i] = D2[i * 4 + 3] <= 16 ? 1 : 0;
+
+    /* flood the outside */
+    const outside = new Uint8Array(N);
+    const stack = [];
+    for (let x = 0; x < W2; x++) { stack.push(x); stack.push((H2 - 1) * W2 + x); }
+    for (let y = 0; y < H2; y++) { stack.push(y * W2); stack.push(y * W2 + W2 - 1); }
+    while (stack.length) {
+      const p = stack.pop();
+      if (outside[p] || !clear[p]) continue;
+      outside[p] = 1;
+      const x = p % W2, y = (p / W2) | 0;
+      if (x > 0) stack.push(p - 1);
+      if (x < W2 - 1) stack.push(p + 1);
+      if (y > 0) stack.push(p - W2);
+      if (y < H2 - 1) stack.push(p + W2);
+    }
+
+    /* enclosed transparent components; only small ones count as damage */
+    const seen = new Uint8Array(N);
+    const MAX_SPECKLE = 900;   // ~30x30px on a 768px sheet
+    for (let p0 = 0; p0 < N; p0++) {
+      if (!clear[p0] || outside[p0] || seen[p0]) continue;
+      const comp = [];
+      const st = [p0];
+      seen[p0] = 1;
+      while (st.length) {
+        const p = st.pop();
+        comp.push(p);
+        const x = p % W2, y = (p / W2) | 0;
+        for (const q of [x > 0 ? p - 1 : -1, x < W2 - 1 ? p + 1 : -1,
+                         y > 0 ? p - W2 : -1, y < H2 - 1 ? p + W2 : -1]) {
+          if (q >= 0 && clear[q] && !outside[q] && !seen[q]) { seen[q] = 1; st.push(q); }
+        }
+      }
+      if (comp.length <= MAX_SPECKLE) holes += comp.length;
+    }
+  }
+
   /* Line density: a pixel counts as line work when it is much darker than the
      average of the ring of pixels a few steps away from it. Sampled on a
      stride so this stays cheap on a 768x768 sheet. */
@@ -130,7 +196,8 @@ for (const entry of manifest) {
     cast: cast / opaque,
     worst, soft: soft / opaque,
     sat: satSum / opaque,
-    ink   /* already a ratio of sampled pixels — do not divide again */
+    ink,  /* already a ratio of sampled pixels — do not divide again */
+    holes: holes / Math.max(1, opaque)
   });
 }
 
@@ -156,7 +223,12 @@ console.log('-'.repeat(84));
  * a threshold loosened for every asset stops being a check.
  */
 const CAST_LIMIT = {
-  echo_wispling: 0.10   // translucent by design; verified by eye over scene_field
+  echo_wispling:   0.10,  // translucent by design; verified by eye over scene_field
+  /* Same subject, same problem: a crystal core inside a halo of cyan light.
+     The halo takes a warm rim from any key it is shot on, and cyan's only
+     distant chroma IS orange. Verified on the contact sheet — it reads as warm
+     light around the core, not as damage. */
+  enemy_dataWisp:  0.09
 };
 function castLimit(key) { return CAST_LIMIT[key] != null ? CAST_LIMIT[key] : 0.03; }
 
@@ -175,6 +247,12 @@ for (const r of rows) {
      Hound's green cabling) lands under 1% and should not cry wolf. */
   if (r.residue > 0.01) flagged.push(`${r.key}: ${(r.residue * 100).toFixed(1)}% leftover ${r.chroma} backdrop — retune cutout.mjs`);
   if (r.cast > castLimit(r.key)) flagged.push(`${r.key}: ${(r.cast * 100).toFixed(1)}% of the subject is tinted ${r.chroma} (peak +${r.worst}) — wrong chroma for this palette, reroll on another`);
+  /* 3%, set by looking rather than by taste. Every asset between 1% and 3%
+     was checked on the contact sheet (tools/qa-sheet.mjs) and the holes are
+     gaps between strands of hair, between fingers, and inside jewellery —
+     real transparency in a correct cutout. The two that were genuinely eaten
+     read 3.5% and 29%, so the boundary is not close to anything. */
+  if (r.holes > 0.03) flagged.push(`${r.key}: ${(r.holes * 100).toFixed(1)}% of the subject is holes — the key ate into the character, use a chroma further from its palette`);
   if (r.coverage < 0.12) flagged.push(`${r.key}: only ${(r.coverage * 100).toFixed(1)}% of the frame is subject — the key probably ate it`);
   if (r.coverage > 0.92) flagged.push(`${r.key}: ${(r.coverage * 100).toFixed(1)}% opaque — the background was probably never removed`);
 }

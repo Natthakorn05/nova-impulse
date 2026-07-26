@@ -160,7 +160,7 @@ NI.screens = (function () {
       `<b style="color:${mate.color}">${mate.name}</b>, who is already standing next to you. ` +
       `<span class="rt-warn">This decides chapters 1 through 10. It cannot be changed later.</span>`;
 
-    $('route-grid').innerHTML = C().ROUTE_IDS.map(id => {
+    $('route-grid').innerHTML = C().routesFor(path).map(id => {
       const p = C().routePerson(id, path);
       const isPartner = id === 'partner';
       const title = isPartner

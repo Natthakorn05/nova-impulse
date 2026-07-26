@@ -16,3 +16,6 @@ dist/
 
 # Local Claude Code permissions — machine state, not project config
 .claude/settings.local.json
+
+# contact sheets from tools/qa-sheet.mjs — regenerate, never commit
+qa-sheet-*.png
