@@ -143,9 +143,14 @@ NI.enemies = (function () {
     },
 
     /* ---------------- Chapter 4 ---------------- */
+    /* Chapters 4-5 were the difficulty wall: a Void Stalker pair out-sped the
+       whole party, dodged a fifth of everything aimed at it and crit a fifth
+       of what it threw, so the fight was decided before the player acted.
+       Speed and evasion are the Stalker's identity and stay high — the crit
+       rate and raw ATK are what made it unfair rather than fast. */
     voidStalker: {
       id: 'voidStalker', name: 'Void Stalker', tier: 'trash', chapter: 4,
-      hp: 190, atk: 24, def: 12, mag: 14, spd: 24, crit: 20, evade: 20, xp: 70,
+      hp: 182, atk: 22, def: 12, mag: 13, spd: 23, crit: 17, evade: 18, xp: 70,
       element: 'dark',
       chroma: 'green',
       art: 'a sleek shadowy predator with unnaturally long limbs and a smooth featureless white ' +
@@ -160,7 +165,7 @@ NI.enemies = (function () {
 
     siegeGolem: {
       id: 'siegeGolem', name: 'Siege Golem', tier: 'elite', chapter: 4,
-      hp: 420, atk: 26, def: 28, mag: 6, spd: 6, crit: 5, evade: 1, xp: 120,
+      hp: 395, atk: 24, def: 26, mag: 6, spd: 6, crit: 5, evade: 1, xp: 120,
       element: 'physical',
       chroma: 'magenta',
       art: 'a colossal war golem of dark stone slabs and riveted iron, glowing white rune seams ' +
@@ -176,7 +181,7 @@ NI.enemies = (function () {
 
     echoDuelist: {
       id: 'echoDuelist', name: 'Echo Duelist', tier: 'elite', chapter: 4,
-      hp: 310, atk: 25, def: 15, mag: 16, spd: 22, crit: 18, evade: 14, xp: 110,
+      hp: 295, atk: 23, def: 15, mag: 16, spd: 21, crit: 16, evade: 13, xp: 110,
       element: 'arcane',
       /* "Prismatic highlights" on a green backdrop produced a green knight,
          which then sat 29% inside the key's own tolerance — the one thing the
@@ -196,7 +201,7 @@ NI.enemies = (function () {
     /* ---------------- Chapter 5 ---------------- */
     nullSeraph: {
       id: 'nullSeraph', name: 'Null Seraph', tier: 'elite', chapter: 5,
-      hp: 360, atk: 27, def: 20, mag: 26, spd: 18, crit: 12, evade: 10, xp: 150,
+      hp: 340, atk: 25, def: 20, mag: 24, spd: 17, crit: 11, evade: 9, xp: 150,
       element: 'light',
       /* Prompt avoids "faceless humanoid figure" phrasing — content filters
          read that as an unclothed person and reject the whole request. */
@@ -207,7 +212,7 @@ NI.enemies = (function () {
            'six geometric wings of hard luminous white and pale gold light arranged in rings, ' +
            'a thin gold halo, no pink, hovering serenely',
       skills: [
-        { name: 'Judgement Ray', icon: 'nova',  power: 24, scaling: 'mag', target: 'enemy', weight: 3, defPierce: 0.25 },
+        { name: 'Judgement Ray', icon: 'nova',  power: 22, scaling: 'mag', target: 'enemy', weight: 3, defPierce: 0.22 },
         { name: 'Silent Chorus', icon: 'nova',  power: 18, scaling: 'mag', target: 'allEnemies', weight: 2 },
         { name: 'Erase',         icon: 'drain', power: 20, scaling: 'mag', target: 'enemy', weight: 1, lifesteal: 0.5 }
       ]
@@ -215,7 +220,10 @@ NI.enemies = (function () {
 
     wardenPrime: {
       id: 'wardenPrime', name: 'Warden Prime', tier: 'boss', chapter: 5,
-      hp: 540, atk: 26, def: 24, mag: 24, spd: 16, crit: 12, evade: 6, xp: 400,
+      /* Recompile at 40 HP/cast undid roughly a full party turn, so the fight
+         did not shorten — it just got longer until someone lost. Cutting the
+         heal is what makes the boss beatable; the stat trims are secondary. */
+      hp: 510, atk: 24, def: 23, mag: 22, spd: 16, crit: 11, evade: 5, xp: 400,
       element: 'arcane',
       chroma: 'magenta',
       art: 'a towering administrator construct in white and gold ceremonial armour, a mirrored ' +
@@ -223,11 +231,11 @@ NI.enemies = (function () {
            'long formal mantle, one hand raised in judgement, overwhelming presence',
       skills: [
         { name: 'Purge Protocol', icon: 'nova',   power: 22, scaling: 'mag', target: 'allEnemies', weight: 2 },
-        { name: 'Sanction',       icon: 'hammer', power: 30, scaling: 'atk', target: 'enemy', weight: 3, defPierce: 0.3 },
+        { name: 'Sanction',       icon: 'hammer', power: 28, scaling: 'atk', target: 'enemy', weight: 3, defPierce: 0.28 },
         { name: 'Restraint Lock', icon: 'stun',   power: 12, scaling: 'mag', target: 'enemy', weight: 1,
-          status: { type: 'stun', chance: 0.5, turns: 1 } },
+          status: { type: 'stun', chance: 0.42, turns: 1 } },
         { name: 'Recompile',      icon: 'regen',  power: 0,  scaling: 'def', target: 'self', weight: 1,
-          selfHeal: 40 }
+          selfHeal: 32 }
       ]
     }
   };

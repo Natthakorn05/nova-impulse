@@ -38,12 +38,14 @@ window.NI = window.NI || {};
 NI.classes = (function () {
 
   /* Character level required before a tier's nodes can be bought. */
-  /* A full 5-chapter run lands around level 8-9, so tier 3 at level 6 opened
-     in the last chapter and tiers 4-5 were never reachable at all — the
-     "five-tier tree" was a two-tier tree with scenery above it. Tier 3 now
-     opens in chapter 4, with real point pressure to choose inside it. Tiers
-     4-5 stay out of reach on purpose: the story is that they are sealed. */
-  const TIER_LEVEL = { 1: 1, 2: 3, 3: 5, 4: 10, 5: 14 };
+  /* Gates are spread across the ten-chapter arc, not the first five.
+     Chapters 1-5 land the party around level 9-10, which is tiers 1-3 fully
+     in play and tier 4 visible but shut — the sealed upper tree is a plot
+     point. Tier 4 sits at 11 rather than 10 specifically because a level-10
+     finish is now common after the XP curve was softened, and letting tier 4
+     crack open in the last fight of chapter 5 took boss clears to 99% (see
+     tools/qa-balance.mjs). It opens in chapter 6, where the story unseals it. */
+  const TIER_LEVEL = { 1: 1, 2: 3, 3: 5, 4: 11, 5: 16 };
 
   const CLASSES = {
 
@@ -62,8 +64,14 @@ NI.classes = (function () {
       /* Glass cannon, but it has to survive long enough to be a cannon.
          At the original 76/+6 a Mage died in ~4 turns to a 10-turn boss,
          making the class unviable in the fight it is meant to carry. */
-      base:   { hp: 94, mp: 62, atk: 7,  mag: 22, def: 9,  spd: 12, crit: 5,  evade: 4 },
-      growth: { hp: 8,  mp: 7,  atk: 0.7, mag: 3.1, def: 1.0, spd: 1.0 },
+      /* Easing chapters 4-5 lifted every other class's boss clear by 7-11
+         points and left the Mage flat at 54%, because its losses are not to
+         the boss's damage output — they are to dying before its own damage
+         lands. Softening the boss further would have made the Tank trivial
+         to fix a problem the Tank does not have. +6 base HP and +1 HP/level
+         is worth about 14 HP by the final fight: one extra survived hit. */
+      base:   { hp: 100, mp: 62, atk: 7,  mag: 22, def: 10, spd: 12, crit: 5,  evade: 4 },
+      growth: { hp: 9,  mp: 7,  atk: 0.7, mag: 3.1, def: 1.1, spd: 1.0 },
       basic:  { name: 'Arcane Bolt', icon: 'bolt', power: 9, scaling: 'mag', element: 'arcane' },
 
       tiers: [

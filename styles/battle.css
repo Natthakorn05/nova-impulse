@@ -201,8 +201,10 @@
   transition: border-color .15s, box-shadow .15s, transform .12s;
   clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
 }
-.act:hover:not(:disabled) { border-color: var(--cyan); box-shadow: var(--glow-cyan); transform: translateY(-2px); }
-.act:disabled { opacity: .35; cursor: not-allowed; }
+.act:hover:not(.off) { border-color: var(--cyan); box-shadow: var(--glow-cyan); transform: translateY(-2px); }
+/* `.off`, not :disabled — an unavailable action still has to be hoverable and
+   focusable so its tooltip can say why it is unavailable. See battleHud.js. */
+.act.off { opacity: .35; cursor: not-allowed; }
 
 .act-ico { width: 24px; height: 24px; }
 .act-ico svg { width: 100%; height: 100%; }
@@ -218,6 +220,46 @@
 }
 .act.combo-ready { border-color: var(--magenta); box-shadow: var(--glow-mag); }
 .act.combo-ready .act-name::after { content: " ⚡"; color: var(--magenta); }
+
+/* ============================================================
+   Skill tooltip
+   ============================================================ */
+
+.bt-tip {
+  position: fixed; z-index: 60; width: min(320px, calc(100vw - 16px));
+  padding: 10px 12px 11px;
+  background: linear-gradient(180deg, rgba(10,14,24,.98), rgba(6,9,16,.98));
+  border: 1px solid var(--cyan);
+  box-shadow: var(--glow-cyan), 0 10px 30px rgba(0,0,0,.6);
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  pointer-events: none;      /* never eat the click aimed at the button under it */
+}
+.bt-tip[hidden] { display: none; }
+
+.tip-head { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+.tip-ico { width: 18px; height: 18px; color: var(--cyan); flex: none; }
+.tip-ico svg { width: 100%; height: 100%; }
+.tip-name {
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  letter-spacing: .05em; color: #fff; flex: 1;
+}
+.tip-cost { font-family: var(--mono); font-size: 10px; color: var(--cyan); letter-spacing: .06em; }
+
+.tip-desc {
+  margin: 0 0 7px; font-size: 12px; line-height: 1.45; color: var(--text-dim);
+}
+
+.tip-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tip-tag {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .04em;
+  padding: 2px 6px; color: var(--text);
+  background: rgba(53,230,255,.09); border: 1px solid rgba(53,230,255,.28);
+}
+
+.tip-note {
+  margin: 7px 0 0; font-family: var(--mono); font-size: 10px;
+  line-height: 1.4; color: var(--amber);
+}
 
 /* target picker */
 .bt-targets {

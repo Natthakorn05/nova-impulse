@@ -34,6 +34,7 @@ NI.hud = (function () {
     el.actions   = $('bt-actions');
     el.targets   = $('bt-targets');
     el.canvas    = $('bt-canvas');
+    el.tip       = $('bt-tip');
   }
 
   /* ============================================================
@@ -50,6 +51,7 @@ NI.hud = (function () {
     el.encounter.classList.toggle('boss', !!B.isBoss);
     el.log.innerHTML = '';
     el.targets.hidden = true;
+    hideTip();
 
     NI.stage.init(el.canvas);
     /* setFoes queues internally until the scene exists, so there is nothing
@@ -142,6 +144,58 @@ NI.hud = (function () {
      Action menu
      ============================================================ */
 
+  /* ---- skill tooltip ----
+     Skill names alone ("Shatterfrost", "Retaliation") do not tell a player
+     what a skill does, and the only place that information existed was the
+     skill tree — which is not reachable mid-fight. */
+
+  function tipHtml(unit, skill, comboReady) {
+    const tags = NI.battle.skillTags(skill)
+      .map(t => `<span class="tip-tag">${t}</span>`).join('');
+    const cd = unit.cooldowns[skill.id] || 0;
+
+    const notes = [];
+    if (cd > 0) notes.push(`Cooling down — ${cd} more turn${cd > 1 ? 's' : ''}.`);
+    if (skill.mp > unit.mp) notes.push(`Needs ${skill.mp} MP; you have ${unit.mp}.`);
+    if (comboReady && skill.combo) {
+      const bonus = unit.stats.comboBonus || 0;
+      notes.push(`Combo link is live — this hits for x${(skill.combo + bonus).toFixed(2)} right now.`);
+    }
+
+    return `
+      <div class="tip-head">
+        <span class="tip-ico">${icons().get(skill.icon)}</span>
+        <span class="tip-name">${skill.name}</span>
+        <span class="tip-cost">${skill.mp ? skill.mp + ' MP' : 'FREE'}</span>
+      </div>
+      ${skill.desc ? `<p class="tip-desc">${skill.desc}</p>` : ''}
+      <div class="tip-tags">${tags}</div>
+      ${notes.map(n => `<p class="tip-note">${n}</p>`).join('')}`;
+  }
+
+  function showTip(btn, html) {
+    if (!el.tip) return;
+    el.tip.innerHTML = html;
+    el.tip.hidden = false;
+
+    /* Anchor above the button, clamped to the viewport so the leftmost and
+       rightmost actions do not push the panel off-screen. */
+    const b = btn.getBoundingClientRect();
+    const t = el.tip.getBoundingClientRect();
+    const margin = 8;
+    let left = b.left + b.width / 2 - t.width / 2;
+    left = Math.max(margin, Math.min(left, window.innerWidth - t.width - margin));
+    let top = b.top - t.height - 10;
+    if (top < margin) top = b.bottom + 10;     // flip below when there is no room
+
+    el.tip.style.left = left + 'px';
+    el.tip.style.top = top + 'px';
+  }
+
+  function hideTip() {
+    if (el.tip) { el.tip.hidden = true; el.tip.innerHTML = ''; }
+  }
+
   function renderActions(unit) {
     const comboReady = B.comboReadyFor(unit);
 
@@ -150,8 +204,13 @@ NI.hud = (function () {
       const noMp = s.mp > unit.mp;
       const disabled = cd > 0 || noMp;
       const isCombo = comboReady && s.combo;
+      /* `off` rather than the disabled attribute: a disabled button fires no
+         mouse events and takes no focus, so the tooltip explaining WHY it is
+         unavailable would be unreachable exactly when it is needed. Clicks
+         are refused in the handler instead. */
       return `
-        <button class="act ${isCombo ? 'combo-ready' : ''}" data-skill="${s.id}" ${disabled ? 'disabled' : ''}>
+        <button class="act ${isCombo ? 'combo-ready' : ''} ${disabled ? 'off' : ''}"
+                data-skill="${s.id}" aria-disabled="${disabled}">
           ${cd > 0 ? `<span class="act-cd">${cd}</span>` : ''}
           <span class="act-ico" style="color:${NI.classes.get(unit.classId).color}">${icons().get(s.icon)}</span>
           <span class="act-name">${s.name}</span>
@@ -168,9 +227,35 @@ NI.hud = (function () {
 
     el.actions.innerHTML = buttons + guard;
 
+    const guardTip = `
+      <div class="tip-head">
+        <span class="tip-ico">${icons().get('guard')}</span>
+        <span class="tip-name">Guard</span>
+        <span class="tip-cost">FREE</span>
+      </div>
+      <p class="tip-desc">Brace instead of attacking. Halves the damage you take
+        until your next turn and banks some MP back.</p>
+      <div class="tip-tags">
+        <span class="tip-tag">Self</span>
+        <span class="tip-tag">${Math.round((1 - NI.battle.GUARD_CUT) * 100)}% less damage</span>
+        <span class="tip-tag">+${NI.battle.GUARD_MP} MP</span>
+      </div>`;
+
     el.actions.querySelectorAll('.act').forEach(btn => {
+      /* Hover and keyboard focus both open it; disabled buttons still explain
+         themselves, which is the case where a player most wants to know why. */
+      const html = () => btn.dataset.guard
+        ? guardTip
+        : tipHtml(unit, unit.skills.find(s => s.id === btn.dataset.skill), comboReady);
+
+      btn.addEventListener('mouseenter', () => showTip(btn, html()));
+      btn.addEventListener('focus',      () => showTip(btn, html()));
+      btn.addEventListener('mouseleave', hideTip);
+      btn.addEventListener('blur',       hideTip);
+
       btn.addEventListener('click', () => {
-        if (busy) return;
+        hideTip();
+        if (busy || btn.classList.contains('off')) return;
         if (btn.dataset.guard) return submit({ kind: 'guard' });
         const skill = unit.skills.find(s => s.id === btn.dataset.skill);
         if (!skill) return;
@@ -190,12 +275,15 @@ NI.hud = (function () {
 
   function setActionsEnabled(on) {
     el.actions.querySelectorAll('.act').forEach(b => {
-      if (!on) b.disabled = true;
-      else if (b.dataset.guard) b.disabled = false;
+      let off;
+      if (!on) off = true;
+      else if (b.dataset.guard) off = false;
       else {
         const s = acting && acting.skills.find(x => x.id === b.dataset.skill);
-        b.disabled = !s || (acting.cooldowns[s.id] > 0) || s.mp > acting.mp;
+        off = !s || (acting.cooldowns[s.id] > 0) || s.mp > acting.mp;
       }
+      b.classList.toggle('off', off);
+      b.setAttribute('aria-disabled', String(off));
     });
   }
 
@@ -474,6 +562,7 @@ NI.hud = (function () {
 
   function finish() {
     busy = true;
+    hideTip();
     el.actions.innerHTML = '';
     setTimeout(showResult, 500);
   }
@@ -508,7 +597,7 @@ NI.hud = (function () {
     if (n >= 1 && n <= 9) {
       const btns = document.querySelectorAll('#bt-actions .act');
       const b = btns[n - 1];
-      if (b && !b.disabled) b.click();
+      if (b && !b.classList.contains('off')) b.click();
     }
     if (e.key === 'Escape' && pending) cancelTargeting();
   });

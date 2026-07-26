@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>NOVA IMPULSE</title>
-<link rel="stylesheet" href="styles/main.css?v=628ff51e">
-<link rel="stylesheet" href="styles/battle.css?v=4344f8fe">
+<link rel="stylesheet" href="styles/main.css?v=8426e7f3">
+<link rel="stylesheet" href="styles/battle.css?v=d00ad2a9">
 </head>
 <body>
 
@@ -148,13 +148,22 @@
 
 </div>
 
+<!-- Battle skill tooltip.
+     Deliberately a sibling of the app wrapper rather than a child of
+     #screen-battle. The screen carries a transform for its entry animation,
+     and a transformed ancestor becomes the containing block for
+     position:fixed — so inside the screen the tooltip's "viewport"
+     coordinates were offset by 184px and it landed on top of the button it
+     was describing. -->
+<div class="bt-tip" id="bt-tip" role="tooltip" hidden></div>
+
 <!-- Phaser: vendored locally so the game works offline and on file:// -->
 <script src="vendor/phaser.min.js?v=73d8b3a7"></script>
 
 <!-- data -->
 <script src="src/data/icons.js?v=e370ae77"></script>
-<script src="src/data/classes.js?v=b60fb452"></script>
-<script src="src/data/enemies.js?v=5f61e2eb"></script>
+<script src="src/data/classes.js?v=2fab23c4"></script>
+<script src="src/data/enemies.js?v=55025de9"></script>
 <script src="src/data/characters.js?v=e70a1f04"></script>
 
 <!-- art -->
@@ -162,7 +171,7 @@
 <script src="src/art/artLoader.js?v=92207b36"></script>
 
 <!-- systems -->
-<script src="src/battle/battleSystem.js?v=5f843a9b"></script>
+<script src="src/battle/battleSystem.js?v=4bec1b18"></script>
 
 <!-- chapters -->
 <script src="src/data/chapters/chapter1.js?v=3bd9a986"></script>
@@ -173,8 +182,8 @@
 
 <!-- ui -->
 <script src="src/ui/battleStage.js?v=ef2758e0"></script>
-<script src="src/ui/battleHud.js?v=d54d1253"></script>
-<script src="src/ui/skillTree.js?v=ac47d35b"></script>
+<script src="src/ui/battleHud.js?v=f970eec5"></script>
+<script src="src/ui/skillTree.js?v=de6aede4"></script>
 <script src="src/ui/screens.js?v=7a6624d8"></script>
 
 <!-- boot -->

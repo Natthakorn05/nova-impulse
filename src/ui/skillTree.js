@@ -103,6 +103,38 @@ NI.tree = (function () {
     `;
   }
 
+  /* ------------------------------------------------------------
+     Node mechanics — the numbers behind the flavour text
+     ------------------------------------------------------------ */
+
+  /* A passive's `desc` says "+14 Max MP, +2 MAG. The basics, held properly."
+     — readable, but it means every stat line is hand-maintained prose that
+     can drift out of step with `mods`. These tags are generated from the
+     data, so they cannot lie. */
+  const MOD_LABEL = {
+    hp: v => `+${v} Max HP`,
+    mp: v => `+${v} Max MP`,
+    atk: v => `+${v} ATK`,
+    mag: v => `+${v} MAG`,
+    def: v => `+${v} DEF`,
+    spd: v => `+${v} SPD`,
+    crit: v => `+${v}% crit chance`,
+    evade: v => `+${v}% evasion`,
+    critMult: v => `+${Math.round(v * 100)}% crit damage`,
+    comboBonus: v => `+${Math.round(v * 100)}% combo bonus`,
+    hpRegen: v => `${v} HP per turn`,
+    mpRegen: v => `${v} MP per turn`,
+    thorns: v => `Reflect ${Math.round(v * 100)}% of melee damage`,
+    critMp: v => `+${v} MP on a crit`,
+    allyDef: v => `+${v} DEF to your partner`
+  };
+
+  function nodeTags(node) {
+    if (node.type === 'active') return NI.battle.skillTags(node.skill);
+    return Object.entries(node.mods || {})
+      .map(([k, v]) => (MOD_LABEL[k] ? MOD_LABEL[k](v) : `${k} +${v}`));
+  }
+
   function renderBody() {
     const m = member();
     const cls = NI.classes.get(m.classId);
@@ -128,6 +160,9 @@ NI.tree = (function () {
               <span class="node-name">${node.name}</span>
               <span class="node-kind">${kind}${!has && !gate.ok && gate.why !== 'no points' ? ' · ' + gate.why.toUpperCase() : ''}</span>
               <span class="node-desc">${node.desc}</span>
+              <span class="node-tags">${
+                nodeTags(node).map(t => `<span class="tip-tag">${t}</span>`).join('')
+              }</span>
             </span>
           </button>`;
       }).join('');
@@ -158,12 +193,20 @@ NI.tree = (function () {
    * At ^1.6 x16 a full run ended at level 7 with 7 skill points — exactly the
    * seven nodes in tiers 1-2, so the player never once had to choose, tier 3
    * was cosmetic, and boss clears sat at 21-49% depending on class. At ^1.5
-   * x15 a run lands at level 8-9: eight or nine points against the eleven
-   * nodes of tiers 1-3, which is a real build decision, and boss clears land
-   * at 56-83%. Tier 4 (level 10) stays out of reach on purpose — the sealed
-   * upper tree is a plot point, not an oversight.
+   * x15 a run landed at level 8-9.
+   *
+   * ^1.48 x14 is the current curve: a run lands at level 9-10, so the player
+   * gets nine or ten points against the eleven nodes of tiers 1-3 and reaches
+   * tier 3 with enough left to actually build inside it. The early levels are
+   * the ones that moved most (level 2 costs 77 instead of 82, level 3 costs
+   * 108 instead of 118) because the grind that felt worst was chapter 1,
+   * where you have one skill and nothing to spend.
+   *
+   * It does not go softer than this. At ^1.45 x13 the run ended at a flat
+   * level 10 and boss clears hit 89-99% — the whole game stopped being a
+   * game. Both that curve and this one were measured, not guessed.
    */
-  function xpForNext(level) { return Math.round(40 + Math.pow(level, 1.5) * 15); }
+  function xpForNext(level) { return Math.round(38 + Math.pow(level, 1.48) * 14); }
 
   /**
    * Award XP to the whole party; returns a list of level-up notices.

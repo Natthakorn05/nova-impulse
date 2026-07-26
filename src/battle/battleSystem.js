@@ -75,6 +75,8 @@ NI.battle = (function () {
       name: cls.basic.name,
       icon: cls.basic.icon,
       basic: true,
+      desc: 'Your free attack. No MP, no cooldown — what you fall back on ' +
+            'when the interesting options are spent.',
       mp: 0, power: cls.basic.power, scaling: cls.basic.scaling,
       target: 'enemy', element: cls.basic.element, combo: 1.15
     }];
@@ -82,9 +84,97 @@ NI.battle = (function () {
     for (const nodeId of (member.unlocked || [])) {
       const node = NI.classes.findNode(member.classId, nodeId);
       if (!node || node.type !== 'active' || !node.skill) continue;
-      list.push({ id: node.id, name: node.name, icon: node.icon, ...node.skill });
+      /* desc travels with the skill so the battle HUD can explain it without
+         reaching back into the class tree to find the node it came from. */
+      list.push({ id: node.id, name: node.name, icon: node.icon, desc: node.desc, ...node.skill });
     }
     return list;
+  }
+
+  /* ============================================================
+     Skill description — the same words in the tree and in battle
+     ============================================================ */
+
+  const ELEMENT_LABEL = {
+    fire: 'Fire', ice: 'Ice', storm: 'Storm', dark: 'Dark', light: 'Light',
+    nature: 'Nature', arcane: 'Arcane', physical: 'Physical'
+  };
+
+  const TARGET_LABEL = {
+    enemy: 'One enemy', allEnemies: 'All enemies', ally: 'One ally',
+    allAllies: 'Whole party', self: 'Self'
+  };
+
+  const STATUS_LABEL = {
+    burn: 'Burn', poison: 'Poison', bleed: 'Bleed', slow: 'Slow',
+    freeze: 'Freeze', stun: 'Stun', mark: 'Mark', taunt: 'Taunt'
+  };
+
+  function pctOf(n) { return Math.round(n * 100) + '%'; }
+
+  function statusTag(s) {
+    const name = STATUS_LABEL[s.type] || s.type;
+    const odds = s.chance >= 1 ? '' : pctOf(s.chance) + ' ';
+    const turns = s.turns ? ` ${s.turns}t` : '';
+    return `${odds}${name}${turns}`;
+  }
+
+  /**
+   * Short mechanical tags for a skill, in the order a player reads them:
+   * what it hits, what it costs, then everything unusual about it.
+   *
+   * The `desc` field on a node is flavour and deliberately vague ("good
+   * chance to inflict Burn"). These are the actual numbers, so a player can
+   * compare two skills without opening the source.
+   */
+  function skillTags(skill) {
+    const t = [];
+    if (!skill) return t;
+
+    t.push(TARGET_LABEL[skill.target || 'enemy'] || 'One enemy');
+    if (skill.element && skill.element !== 'none') {
+      t.push(ELEMENT_LABEL[skill.element] || skill.element);
+    }
+    if (skill.power) {
+      const stat = (skill.scaling || 'atk').toUpperCase();
+      t.push(`Power ${skill.power} · ${stat}`);
+    }
+    if (skill.hits > 1)         t.push(`${skill.hits} hits`);
+    if (skill.combo)           t.push(`Combo x${skill.combo.toFixed(2).replace(/0$/, '')}`);
+    if (skill.critBonus)       t.push(`+${skill.critBonus}% crit`);
+    if (skill.alwaysCrit)      t.push('Always crits');
+    if (skill.defPierce)       t.push(`Ignores ${pctOf(skill.defPierce)} DEF`);
+    if (skill.lifesteal)       t.push(`Heals ${pctOf(skill.lifesteal)} of damage`);
+    if (skill.bonusVs) {
+      const names = skill.bonusVs.status.map(s => STATUS_LABEL[s] || s).join('/');
+      t.push(`+${Math.round((skill.bonusVs.mult - 1) * 100)}% vs ${names}`);
+    }
+    if (skill.executeBelow) {
+      t.push(`x${skill.executeMult || 2} below ${pctOf(skill.executeBelow)} HP`);
+    }
+    if (skill.missingHpScale)  t.push('Stronger the more HP you have lost');
+    if (skill.status)          t.push(statusTag(skill.status));
+    if (skill.status2)         t.push(statusTag(skill.status2));
+
+    if (skill.selfBuff) {
+      const parts = Object.entries(skill.selfBuff)
+        .filter(([k]) => k !== 'turns')
+        .map(([k, v]) => `+${v} ${k.toUpperCase()}`);
+      t.push(`Self: ${parts.join(', ')}${skill.selfBuff.turns ? ` ${skill.selfBuff.turns}t` : ''}`);
+    }
+    if (skill.allyBuff && skill.allyBuff.damageTaken != null) {
+      t.push(`Takes ${pctOf(1 - skill.allyBuff.damageTaken)} less damage` +
+             (skill.allyBuff.turns ? ` ${skill.allyBuff.turns}t` : ''));
+    }
+    if (skill.shield)          t.push('Absorbs damage outright');
+    if (skill.guardian)        t.push(`Cannot drop below 1 HP · ${skill.guardian}t`);
+    if (skill.heal)            t.push(`Heals ${skill.heal}`);
+    if (skill.selfHeal)        t.push(`Heals self ${skill.selfHeal}`);
+    if (skill.restoreMp)       t.push(`+${skill.restoreMp} MP`);
+    if (skill.cleanse)         t.push('Clears status effects');
+    if (skill.cooldown)        t.push(`Cooldown ${skill.cooldown}t`);
+
+    return t;
   }
 
   /* ============================================================
@@ -644,7 +734,7 @@ NI.battle = (function () {
   }
 
   return {
-    create, buildStats, skillsFor,
+    create, buildStats, skillsFor, skillTags,
     CRIT_MULT, GUARD_CUT, GUARD_MP
   };
 })();

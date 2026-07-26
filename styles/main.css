@@ -531,6 +531,11 @@ body::before {
 }
 .node-desc { font-size: 11.5px; color: var(--text-dim); line-height: 1.5; margin-top: 5px; }
 
+/* Generated from the node's own data (see skillTree.js nodeTags) — shares the
+   .tip-tag styling with the battle tooltip so a skill reads the same in both
+   places. battle.css owns .tip-tag. */
+.node-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+
 /* ============================================================
    Art helpers
    ============================================================ */
