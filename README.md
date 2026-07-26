@@ -342,8 +342,13 @@ npm run deploy       # build + netlify-cli --prod, if you'd rather not use Git d
 ```
 
 Caching is set up around the content hashes `tools/stamp.mjs` writes into `index.html`: assets are
-`immutable` for a year, `index.html` and `index.json` always revalidate. A `Dockerfile`/`fly.toml`
-are also present but were never executed end-to-end.
+`immutable` for a year, `index.html` and `index.json` always revalidate.
+
+One trap worth knowing about, because it cost a debugging round: **localhost sends no CSP header
+and Netlify does**, so a Content-Security-Policy mistake is invisible locally and only breaks in
+production. `img-src` needs `blob:` — Phaser XHRs each sprite and hands the browser an object URL,
+so without it every asset fetch returns 200 and the *decode* is blocked, leaving a silently empty
+battle canvas. Verify rendering against the deployed URL, not the dev server.
 
 ---
 
