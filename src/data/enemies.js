@@ -266,7 +266,19 @@ NI.enemies = (function () {
 
     c5_seraph:   { name: 'Null Seraph',         foes: ['nullSeraph'] },
     c5_escort:   { name: 'Seraph Escort',       foes: ['nullSeraph', 'voidStalker'] },
-    c5_prime:    { name: 'WARDEN PRIME',        foes: ['wardenPrime'], boss: true }
+    c5_prime:    { name: 'WARDEN PRIME',        foes: ['wardenPrime'], boss: true },
+
+    /* ---------------- Chapter 6+ ----------------
+       The Breach does not spawn new species, it spawns MORE — that is the
+       point of the second act, and it is why these are recombinations of
+       enemies the player already knows rather than a fresh bestiary. A
+       Hollow Knight standing beside a Null Seraph is a sentence about the
+       world, and it costs no art. The scale field hardens them without
+       inventing stat blocks nobody would recognise. */
+    c6_leak:     { name: 'Breach Leak',         foes: ['voidStalker', 'dataWisp'], scale: 1.15 },
+    c6_choir:    { name: 'Broken Choir',        foes: ['nullSeraph', 'cinderMoth'], scale: 1.15 },
+    c6_pair:     { name: 'Sealed Pair',         foes: ['hollowKnight', 'echoDuelist'], scale: 1.2 },
+    c6_gate:     { name: 'THE GATE',            foes: ['siegeGolem', 'voidStalker'], scale: 1.3, boss: true }
   };
 
   function get(id) { return ENEMIES[id]; }

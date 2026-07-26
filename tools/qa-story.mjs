@@ -35,7 +35,8 @@ const FILES = [
   'src/data/chapters/chapter2.js',
   'src/data/chapters/chapter3.js',
   'src/data/chapters/chapter4.js',
-  'src/data/chapters/chapter5.js'
+  'src/data/chapters/chapter5.js',
+  'src/data/chapters/chapter6.js'
 ];
 
 for (const f of FILES) {
@@ -48,7 +49,7 @@ for (const f of FILES) {
 }
 
 const NI = ctx.NI;
-const CH = [1, 2, 3, 4, 5].map(n => NI.story['chapter' + n]);
+const CH = [1, 2, 3, 4, 5, 6].map(n => NI.story['chapter' + n]);
 const BATTLES = new Set(Object.keys(NI.enemies?.encounters || {}));
 
 const problems = [];

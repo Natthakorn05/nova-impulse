@@ -124,9 +124,14 @@ NI.breach = (function () {
      Rewards
      ------------------------------------------------------------ */
 
-  /** Resonance shards for clearing a wave — the gacha currency. */
+  /** Resonance shards for clearing a wave — the gacha currency.
+   *
+   * Raised once the pull rates moved to a real gacha curve (0.8% base,
+   * hard pity at 80). At the old income a complete roster was roughly 345
+   * runs, which is not a long-term goal, it is an unreachable one for a
+   * game this size. */
   function shardsFor(waveNo) {
-    return Math.round((8 + waveNo * 2.4) * (isBossWave(waveNo) ? 2.2 : 1));
+    return Math.round((20 + waveNo * 6) * (isBossWave(waveNo) ? 2.2 : 1));
   }
 
   /**

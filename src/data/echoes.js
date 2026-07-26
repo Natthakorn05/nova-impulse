@@ -53,9 +53,13 @@ NI.echoes = (function () {
      unlucky tail cannot run away. */
   const STARS = {
     3: { star: 3, label: '3★', color: '#9fb2c9', mult: 1.00, catchRate: 0.34, pull: 100 },
-    4: { star: 4, label: '4★', color: '#b06cff', mult: 1.30, catchRate: 0.11, pull: 50 },
-    /* Uncatchable by design — catchRate 0 and no `from`. */
-    5: { star: 5, label: '5★', color: '#ffc44a', mult: 1.62, catchRate: 0,    pull: 19 }
+    4: { star: 4, label: '4★', color: '#b06cff', mult: 1.30, catchRate: 0.11, pull: 42 },
+    /* Uncatchable by design — catchRate 0 and no `from`.
+       Weight 19 was tuned when the only way to pull was to finish the story.
+       With ten pulls granted at the start it meant 69% of players opened with
+       a 5★ and owned 7 of 16 Echoes before chapter 1 — the collection was
+       half over before it began. */
+    5: { star: 5, label: '5★', color: '#ffc44a', mult: 1.62, catchRate: 0,    pull: 7 }
   };
 
   const BOND_MAX = 5;

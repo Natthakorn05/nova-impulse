@@ -101,37 +101,81 @@ NI.collection = (function () {
    * which is the point of bond existing.
    * @returns {object|null} grant report, or null when it cannot be afforded
    */
+  /* ------------------------------------------------------------
+     Rates
+
+     Modelled on the standard gacha shape (Genshin, Wuthering Waves):
+     a very low base rate, a soft-pity ramp near the end of the
+     cycle, and a hard guarantee. That structure exists because a
+     flat rate produces a long tail of players who pull eighty times
+     and conclude the top tier is a lie — the ramp means almost
+     everyone actually receives theirs in the seventies.
+
+     Concretely: 0.5% per pull until 65, then climbing steeply, with
+     a guarantee at 80. 4-star has its own ten-pull floor so a run of
+     pulls is never entirely worthless.
+
+     0.5% is low enough that an early 5-star is a genuine piece of
+     luck — about one player in twenty hits one inside the ten free
+     opening pulls — rather than something most players expect.
+     ------------------------------------------------------------ */
+
+  const PITY_AT      = 80;   // hard guarantee for a 5-star
+  const SOFT_PITY_AT = 65;   // ramp begins
+  const BASE_5       = 0.005;
+  const SOFT_STEP    = 0.06; // added per pull past the soft threshold
+  const BASE_4       = 0.06;
+  const PITY_4       = 10;
+
+  function fiveStarChance(pity) {
+    if (pity + 1 >= PITY_AT) return 1;
+    if (pity + 1 <= SOFT_PITY_AT) return BASE_5;
+    return Math.min(1, BASE_5 + (pity + 1 - SOFT_PITY_AT) * SOFT_STEP);
+  }
+
+  /** Weighted pick within one star tier. */
+  function pickOfStar(star, r) {
+    const pool = NI.echoes.pullTable()
+      .filter(t => NI.echoes.get(t.id).star === star);
+    const total = pool.reduce((n, t) => n + t.weight, 0);
+    let x = r() * total;
+    let chosen = pool[0];
+    for (const t of pool) { x -= t.weight; if (x <= 0) { chosen = t; break; } }
+    return chosen.id;
+  }
+
   function pull(state, rand) {
     if (!canPull(state)) return null;
     const r = rand || Math.random;
     state.shards -= NI.breach.PULL_COST;
-    state.pity = (state.pity || 0) + 1;
 
-    let table = NI.echoes.pullTable();
+    state.pity = (state.pity || 0);
+    state.pity4 = (state.pity4 || 0);
 
-    /* Pity. Without it the distribution has a tail a real player will
-       actually hit: the unlucky quarter of players would pull sixty times
-       and see nothing above epic, conclude the legendaries are fake, and
-       stop. Guaranteeing one every PITY_AT pulls costs the lucky player
-       nothing and rescues the unlucky one. */
-    if (state.pity >= PITY_AT) {
-      table = table.filter(t => NI.echoes.get(t.id).star === 5);
+    let star;
+    if (r() < fiveStarChance(state.pity)) {
+      star = 5;
+      state.pity = 0;
+      state.pity4 = 0;
+    } else {
+      state.pity += 1;
+      /* Four-star floor: guaranteed by the tenth pull without one. */
+      if (state.pity4 + 1 >= PITY_4 || r() < BASE_4) {
+        star = 4;
+        state.pity4 = 0;
+      } else {
+        star = 3;
+        state.pity4 += 1;
+      }
     }
 
-    const total = table.reduce((n, t) => n + t.weight, 0);
-    let x = r() * total;
-    let chosen = table[0];
-    for (const t of table) { x -= t.weight; if (x <= 0) { chosen = t; break; } }
-
-    if (NI.echoes.get(chosen.id).star === 5) state.pity = 0;
-
-    const report = grant(state, chosen.id);
-    if (report) report.pity = PITY_AT - (state.pity || 0);
+    const report = grant(state, pickOfStar(star, r));
+    if (report) {
+      report.star = star;
+      report.pity = PITY_AT - state.pity;
+    }
     return report;
   }
-
-  /** Pulls without a legendary before one is guaranteed. */
-  const PITY_AT = 35;
 
   /* ------------------------------------------------------------
      Spending

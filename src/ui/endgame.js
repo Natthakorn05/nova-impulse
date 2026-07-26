@@ -59,6 +59,12 @@ NI.endgame = (function () {
       <div class="nx-stat"><span>ECHOES</span><b>${p.have} / ${p.total}</b></div>
       <div class="nx-stat"><span>DEEPEST BREACH</span><b>${p.best || '—'}</b></div>`;
 
+    /* Breach is endgame-only; the rest of the hub is not. */
+    const post = (state.chapter || 1) >= 6 || state.breachBest > 0;
+    $('nx-breach').disabled = !post;
+    $('nx-breach').textContent = post ? 'ENTER BREACH' : 'BREACH — AFTER CH.5';
+    $('nx-leave').textContent = host.back ? 'BACK' : 'TITLE';
+
     $('nx-equipped').innerHTML = eqDef
       ? `<div class="nx-eq">
            <div class="nx-eq-art">${NI.art.figure('echo_' + eqDef.id, eqDef.name)}</div>
@@ -339,7 +345,12 @@ NI.endgame = (function () {
     $('nx-summon').addEventListener('click', showSummon);
     $('nx-talk').addEventListener('click', () => NI.talk.open(state, { back: showHub }));
     NI.talk.bind();
-    $('nx-leave').addEventListener('click', () => { if (host.toTitle) host.toTitle(); });
+    /* "BACK" when the hub was opened mid-story, "TITLE" when it is the
+       endgame hub proper. Same button, because it is the same hub. */
+    $('nx-leave').addEventListener('click', () => {
+      if (host.back) return host.back();
+      if (host.toTitle) host.toTitle();
+    });
 
     $('ec-back').addEventListener('click', showHub);
     $('sm-back').addEventListener('click', showHub);

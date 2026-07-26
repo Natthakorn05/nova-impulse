@@ -19,6 +19,12 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RUNS = Number(process.argv[2]) || 800;
+/* Story battles carry the player's equipped Echo since the ten opening pulls
+   landed, so the story has to be measurable with one. --echo <id> [bond] */
+const ECHO_ARG = process.argv.indexOf('--echo');
+const ECHO = ECHO_ARG > 0
+  ? { id: process.argv[ECHO_ARG + 1], bond: Number(process.argv[ECHO_ARG + 2]) || 1 }
+  : null;
 
 /* ---- load the game, browser-shaped ---- */
 const ctx = vm.createContext({ console, Math, Date, JSON });
@@ -27,7 +33,8 @@ ctx.window = ctx;
 ctx.document = { getElementById: () => null, createElement: () => ({ style: {}, classList: { add(){}, remove(){} } }) };
 
 for (const f of [
-  'src/data/classes.js', 'src/data/enemies.js', 'src/data/characters.js',
+  'src/data/classes.js', 'src/data/enemies.js', 'src/data/echoes.js',
+  'src/data/breach.js', 'src/data/collection.js', 'src/data/characters.js',
   'src/battle/battleSystem.js', 'src/ui/skillTree.js',
   'src/data/chapters/chapter1.js', 'src/data/chapters/chapter2.js',
   'src/data/chapters/chapter3.js', 'src/data/chapters/chapter4.js',
@@ -168,7 +175,7 @@ function runOnce(playerClass, fixedMate) {
     for (const key of CHAPTERS[c]) {
       for (const m of state.party) spendPoints(m);
 
-      const B = NI.battle.create(state.party, key);
+      const B = NI.battle.create(state.party, key, ECHO);
       let rounds = 0;
       while (rounds++ < 400) {
         const step = B.advance();

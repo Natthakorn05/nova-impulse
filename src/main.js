@@ -16,7 +16,8 @@
     2: NI.story.chapter2,
     3: NI.story.chapter3,
     4: NI.story.chapter4,
-    5: NI.story.chapter5
+    5: NI.story.chapter5,
+    6: NI.story.chapter6
   };
 
   const SAVE_KEY = 'novaImpulse.save.v1';
@@ -48,6 +49,12 @@
       chapter: 1, beat: null,
       trust: 0, flags: {},
       battlesWon: 0, battlesLost: 0,
+      route: null,
+      /* Ten free pulls to open with. A gacha whose first screen is "come back
+         later" teaches the player to ignore it, and an Echo in the party from
+         chapter 1 is a reason to care about catching the next one. */
+      echoes: [], shards: NI.breach.PULL_COST * 10, equipped: null,
+      breachBest: 0, pity: 0,
       version: 1
     };
   }
@@ -139,6 +146,13 @@
 
   function takeChoice(choice) {
     if (choice.sets) state.flags[choice.sets] = true;
+    /* The chapter 6 route lock. Recorded as its own field rather than a flag
+       because everything from chapter 7 on branches on it, and a flag would
+       make "which route am I on" a search through the flag bag. */
+    if (choice.route) {
+      state.route = choice.route;
+      state.flags['route_' + choice.route] = true;
+    }
     applyEffects({ trust: choice.trust });
     setTimeout(() => goTo(choice.goto), choice.trust ? 380 : 0);
   }
@@ -165,7 +179,16 @@
 
   function startBattle(beat) {
     pendingBattleBeat = beat;
-    const battle = NI.battle.create(state.party, beat.battle);
+    /* Echoes fight from chapter 6 on, not before.
+       Measured: a 4-star Echo at bond 1 took chapters 1-5 from 72-97% boss
+       clears to a flat 100% for every class, and cutting its stats to 42%
+       changed nothing — a third body in a two-body party is +50% actions
+       before any stat is compared, and it soaks hits that were meant for you.
+       You can still pull, own and inspect Echoes from the first chapter; they
+       simply do not take the field until the Breach opens, which is also when
+       the story says they could. */
+    const echo = (state.chapter || 1) >= 6 ? NI.collection.equipped(state) : null;
+    const battle = NI.battle.create(state.party, beat.battle, echo);
 
     S().show('battle');
     NI.hud.start(battle, { onEnd: onBattleEnd });
@@ -296,6 +319,13 @@
   document.getElementById('btn-tree-close').addEventListener('click', () => {
     S().show('story');
     if (state.beat) S().renderPartyStrip(state);
+  });
+
+  /* Echoes are reachable from the story, not only from the endgame hub.
+     The player starts with ten pulls, so the first thing the summon screen
+     can say to them is "here is a creature", not "come back after chapter 5". */
+  document.getElementById('btn-echo').addEventListener('click', () => {
+    NI.endgame.open(state, { save, toTitle, back: () => S().show('story') });
   });
 
   document.getElementById('btn-menu').addEventListener('click', () => {

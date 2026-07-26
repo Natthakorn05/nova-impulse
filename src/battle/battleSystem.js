@@ -210,10 +210,22 @@ NI.battle = (function () {
    * third set of buttons every round and doubles the length of a fight,
    * and the Echo's job is to change how a fight feels, not how long it is.
    */
-  function makeEcho(owned, partyLevel) {
+  function makeEcho(owned, partyLevel, power) {
     const def = NI.echoes.get(owned.id);
     if (!def) return null;
     const stats = NI.echoes.stats(owned, partyLevel);
+    /* An Echo is a third body in a party the story was balanced around two
+       of, which is +50% action economy before any stat is compared. Measured:
+       a 4-star Echo at bond 1 took chapters 1-5 from 72-97% boss clears to a
+       flat 100% for every class — the story stopped being a game. So it
+       fights at reduced power until the endgame, and comes into its own in
+       the Breach, where the mode was designed around it. */
+    const k = power == null ? 1 : power;
+    if (k !== 1) {
+      for (const key of ['hp','atk','mag','def','spd']) {
+        stats[key] = Math.max(1, Math.round(stats[key] * k));
+      }
+    }
     const r = NI.echoes.rarity(def.star);
 
     return {
@@ -424,11 +436,15 @@ NI.battle = (function () {
     if (echo && echo.id) {
       const avgLevel = Math.round(
         party.reduce((n, m) => n + (m.level || 1), 0) / Math.max(1, party.length));
-      const unit = makeEcho(echo, avgLevel);
+      const unit = makeEcho(echo, avgLevel, enc.echoPower);
       if (unit) {
         const aura = NI.echoes.auraOf(echo);
+        const auraK = enc.echoPower == null ? 1 : enc.echoPower;
         for (const a of allies) {
-          for (const [k, v] of Object.entries(aura)) a.stats[k] = (a.stats[k] || 0) + v;
+          for (const [k, v] of Object.entries(aura)) {
+            aura[k] = Math.round(v * auraK);
+            a.stats[k] = (a.stats[k] || 0) + aura[k];
+          }
           /* Aura HP is max-HP, so it has to reach the current pool too or it
              is a bar that starts partly empty for no visible reason. */
           if (aura.hp) { a.maxHp += aura.hp; a.hp += aura.hp; }
