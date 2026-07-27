@@ -227,6 +227,32 @@ function epiloguePrompt(ctx) {
   ].filter(Boolean).join('\n\n');
 }
 
+/* Rotating theme for Breach floors.
+ *
+ * Each floor is a separate request with no knowledge of the others, so the
+ * model physically cannot vary its output across them — asked forty times in
+ * isolation for "a place inside failing software" it returns forty
+ * rearrangements of the same three nouns, and banning those nouns just moves
+ * the cluster. Variety has to come from the caller, so the wave number picks
+ * the register and the model writes within it.
+ *
+ * Prime-length list so it does not align with the every-fifth-wave boss
+ * rhythm and make every surge floor sound the same.
+ */
+const BREACH_THEMES = [
+  'unfinished architecture — scaffolding, grey placeholder rooms, doors painted on walls',
+  'weather that should not be indoors — static rain, heat with no source, wind through corridors',
+  'sound and silence — dead air, a loop of one noise, something audible through a wall',
+  'the body — rooms shaped like anatomy, floors that breathe, corridors like a throat',
+  'archives and paperwork — filing, stamps, ledgers, things catalogued and shelved',
+  'water and depth — flooding, pressure, sediment, things sunk and preserved',
+  'light and its absence — glare, long shadows, a single working lamp',
+  'growth — rust, mould, crystal, something spreading where it should not',
+  'the domestic — a kitchen, a stairwell, a bedroom, rendered wrong',
+  'machinery — bearings, coolant, presses, an engine room nobody maintains',
+  'cold storage — frost, stillness, preservation, things kept rather than used'
+];
+
 /** One wave of the endless Breach: a name and a line of descent flavour. */
 function breachPrompt(ctx) {
   return [
@@ -237,19 +263,18 @@ function breachPrompt(ctx) {
     (ctx.deepest ? `, and their record is wave ${ctx.deepest}` : '') + `. ` +
     `The enemies on this floor are: ${ctx.foes}.`,
     ctx.boss ? 'This floor is a boss floor. Make it feel like one.' : '',
+    `THIS floor's register is: ${ctx.theme}. Both lines must come from that ` +
+    `register and nowhere else.`,
     `Reply with exactly two lines and nothing else.\n` +
     `Line 1: a floor name, two to four words, no quotes, no punctuation at ` +
-    `the end. It should sound like a place inside failing software. Avoid ` +
-    `the words System, Zone, Abyss, Depth, Crash, Error and Glitch — a ` +
-    `player descending forty floors sees every one of these names, and four ` +
-    `variations on "System Failure Zone" reads as a template rather than a ` +
-    `place. Draw on what the floor is actually made of instead.\n` +
+    `the end, drawn from the register above. Do not use the words System, ` +
+    `Zone, Abyss, Depth, Crash, Error, Glitch, Code or Fracture — those are ` +
+    `the generic answer and every floor would end up sharing them.\n` +
     `Line 2: one sentence of twelve to twenty-two words, present tense, ` +
-    `second person, describing one concrete physical detail the player sees ` +
-    `on arriving. Name something specific — a surface, a sound, a piece of ` +
-    `broken geometry, or one of the creatures waiting. Never write a generic ` +
-    `summary like "you see a dark arena"; if the sentence would work on any ` +
-    `floor, it is wrong.`
+    `second person, describing one concrete physical detail on arriving. ` +
+    `Name something specific — a surface, a sound, a piece of broken ` +
+    `geometry, or one of the creatures waiting. Do not begin with "You see". ` +
+    `If the sentence would work on any floor, it is wrong.`
   ].filter(Boolean).join('\n\n');
 }
 
@@ -425,8 +450,10 @@ export default async function handler(request) {
       });
 
     } else if (mode === 'breach') {
+      const w = n(body.wave, 1, 999);
       system = breachPrompt({
-        wave: n(body.wave, 1, 999),
+        wave: w,
+        theme: BREACH_THEMES[w % BREACH_THEMES.length],
         deepest: n(body.deepest, 0, 999),
         boss: !!body.boss,
         foes: Array.isArray(body.foes)
