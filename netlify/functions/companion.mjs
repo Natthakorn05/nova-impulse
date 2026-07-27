@@ -200,12 +200,12 @@ function epiloguePrompt(ctx) {
     `cannot be destroyed, only finished. Nobody has logged out — the option ` +
     `is there and no one has pressed it. The story does not end here and ` +
     `your entry must not end it.`,
-    `The run: ${ctx.playerName}, a ${ctx.className}, level ${ctx.level}. ` +
-    `They played as ${ctx.leadName}. The person this turned out to be about ` +
-    `was ${ctx.routeName}, and their bond reached ${TRUST_STAGE(ctx.trust)}. ` +
-    `They won ${ctx.battlesWon} fights and lost ${ctx.battlesLost}. ` +
+    `The account you are writing about: ${ctx.playerName}, a ` +
+    `${ctx.className}. The person this one turned out to be about was ` +
+    `${ctx.routeName}, and by the end they were ${TRUST_STAGE(ctx.trust)}. ` +
+    `They survived ${ctx.battlesWon} fights and died in ${ctx.battlesLost}. ` +
     `They bound ${ctx.echoes} Echoes.` +
-    (ctx.deepest ? ` Their deepest Breach was wave ${ctx.deepest}.` : ''),
+    (ctx.deepest ? ` They went ${ctx.deepest} floors into the Breach.` : ''),
     ctx.notes ? `Things that happened on this run: ${ctx.notes}` : '',
     `Write it as an in-world system archive entry, 150-200 words, in the ` +
     `voice of something that has watched a hundred and eleven of these and ` +
@@ -216,11 +216,14 @@ function epiloguePrompt(ctx) {
     `journey in general.`,
     `Hard rules. Never mention chapters, levels, statistics, or the game as ` +
     `a game — this is a record written from inside the world, and the word ` +
-    `"chapter" does not exist in it. No headings and no bullet points. No ` +
-    `digits. Do not open with "Another" and do not repeat your closing ` +
-    `sentence. Avoid ornamental adjectives like enigmatic, tantalizing or ` +
-    `desperate. Last line: state plainly that the logout prompt is still ` +
-    `open and that this one has not pressed it either.`
+    `"chapter" does not exist in it, and neither do the words played, ` +
+    `player, run or account. No headings and no bullet points. No digits. ` +
+    `Do not open with "Another". Avoid ornamental adjectives like enigmatic, ` +
+    `tantalizing or desperate, and do not simply list what happened — this ` +
+    `is a record kept by something with an opinion about it.`,
+    `Finish on the logout prompt: it is still open, and this one did not ` +
+    `press it. Write that as your own closing sentence in your own words. ` +
+    `Do not copy the phrasing of this instruction.`
   ].filter(Boolean).join('\n\n');
 }
 
@@ -236,7 +239,11 @@ function breachPrompt(ctx) {
     ctx.boss ? 'This floor is a boss floor. Make it feel like one.' : '',
     `Reply with exactly two lines and nothing else.\n` +
     `Line 1: a floor name, two to four words, no quotes, no punctuation at ` +
-    `the end. It should sound like a place inside failing software.\n` +
+    `the end. It should sound like a place inside failing software. Avoid ` +
+    `the words System, Zone, Abyss, Depth, Crash, Error and Glitch — a ` +
+    `player descending forty floors sees every one of these names, and four ` +
+    `variations on "System Failure Zone" reads as a template rather than a ` +
+    `place. Draw on what the floor is actually made of instead.\n` +
     `Line 2: one sentence of twelve to twenty-two words, present tense, ` +
     `second person, describing one concrete physical detail the player sees ` +
     `on arriving. Name something specific — a surface, a sound, a piece of ` +
