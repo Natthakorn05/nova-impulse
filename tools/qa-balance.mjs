@@ -20,11 +20,29 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RUNS = Number(process.argv[2]) || 800;
 /* Story battles carry the player's equipped Echo since the ten opening pulls
-   landed, so the story has to be measurable with one. --echo <id> [bond] */
+   landed, so the story has to be measurable with one. --echo <id> [bond],
+   or --echo none to measure the party alone.
+
+   This used to default to null, which quietly measured chapters 6-10 with a
+   two-person party — a party the game never hands anyone, because the first
+   Echo a player pulls auto-equips and ten pulls are granted at registration.
+   The late chapters read as 0-13% unbeatable and the tuning looked broken
+   when it was the measurement that was wrong. Same failure as the defensive
+   skills the AI never cast: an instrument missing a whole mechanic reports a
+   confident number, and a confident number is indistinguishable from a
+   correct one.
+
+   The default is a 4-star at bond 1 rather than the best in the game: the
+   four-star floor guarantees one inside ten pulls, so it is what a player
+   actually walks into chapter 6 holding. A 5-star default would flatter the
+   tuning by measuring the luckiest run instead of the median one. */
+const DEFAULT_ECHO = { id: 'stalkerling', bond: 1 };
 const ECHO_ARG = process.argv.indexOf('--echo');
 const ECHO = ECHO_ARG > 0
-  ? { id: process.argv[ECHO_ARG + 1], bond: Number(process.argv[ECHO_ARG + 2]) || 1 }
-  : null;
+  ? (process.argv[ECHO_ARG + 1] === 'none'
+      ? null
+      : { id: process.argv[ECHO_ARG + 1], bond: Number(process.argv[ECHO_ARG + 2]) || 1 })
+  : DEFAULT_ECHO;
 
 /* ---- load the game, browser-shaped ---- */
 const ctx = vm.createContext({ console, Math, Date, JSON });
@@ -48,6 +66,20 @@ for (const f of [
 
 const NI = ctx.NI;
 const CLASS_IDS = NI.classes.ALL_IDS;
+
+/* Stat overrides for tuning sweeps, as JSON in NI_BALANCE_PATCH:
+     { "impulseCore": { "hp": 1900, "atk": 42 } }
+   This exists so a difficulty change can be measured before it is committed
+   to enemies.js, instead of edit-run-revert cycling through the real data
+   file. tools/tune-bosses.mjs drives it. */
+if (process.env.NI_BALANCE_PATCH) {
+  const patch = JSON.parse(process.env.NI_BALANCE_PATCH);
+  for (const [id, over] of Object.entries(patch)) {
+    const foe = NI.enemies.get(id);
+    if (!foe) throw new Error(`NI_BALANCE_PATCH: no enemy "${id}"`);
+    Object.assign(foe, over);
+  }
+}
 
 /* ---- battle order, walked out of the story ---- */
 function battleOrder(chapterNum) {
@@ -312,7 +344,13 @@ if (process.argv.includes('--matrix')) {
 
 /* ---- report ------------------------------------------------------------ */
 
-console.log(`${RUNS} runs per class, ${CHAPTERS.flat().length} battles per run\n`);
+/* Say what was measured. A clear rate means nothing without the party that
+   produced it, and the party size changes at chapter 6. */
+const echoLabel = ECHO
+  ? `${ECHO.id} bond ${ECHO.bond} (from ch${ECHO_FROM})`
+  : 'none — two-person party throughout';
+console.log(`${RUNS} runs per class, ${CHAPTERS.flat().length} battles per run`);
+console.log(`chapters ${CHAPTER_NUMS[0]}-${CHAPTER_NUMS[CHAPTER_NUMS.length - 1]}   echo: ${echoLabel}\n`);
 console.log('class     boss win   battles won   end LV   LV by chapter');
 console.log('-------------------------------------------------------------------');
 

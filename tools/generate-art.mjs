@@ -6,16 +6,27 @@
    assets/generated/ and committed/served as static files, so the
    game never depends on an API being up or a key being present.
 
-   Providers (free tier only, per project decision):
-     pollinations  — no key, uncapped, default
-     huggingface   — needs HF_TOKEN in .env, anime-tuned models
+   Providers (free tier only, per project decision), in fallback order:
+     cloudflare    — DEFAULT. Needs CF_ACCOUNT_ID + CF_API_TOKEN. Best output
+                     of everything tested, and the source of every asset in
+                     the game.
+     together      — needs TOGETHER_API_KEY
+     huggingface   — needs HF_TOKEN (image gen is dead on the free tier;
+                     kept only because a paid account would revive it)
      gemini        — needs GEMINI_API_KEY *with billing enabled*
+
+   Pollinations was removed on 2026-07-27. It required no key at all, which
+   is why it had been the default, but across the last two batches it
+   accepted every connection and never answered — one run sat for 1h12m and
+   produced nothing while four working providers waited behind it. It also
+   predated fetchWithTimeout below, so it hung rather than failing over.
 
    Usage:
      node tools/generate-art.mjs                 # fill in missing art
      node tools/generate-art.mjs --force         # regenerate everything
      node tools/generate-art.mjs --only kirito   # key substring filter
-     node tools/generate-art.mjs --provider huggingface
+     node tools/generate-art.mjs --reroll 7      # vary the seed
+     node tools/generate-art.mjs --provider together
      node tools/generate-art.mjs --list          # show manifest, generate nothing
    ============================================================ */
 
@@ -79,7 +90,7 @@ const val = f => { const i = argv.indexOf(f); return i >= 0 ? argv[i + 1] : null
 const FORCE = has('--force');
 const LIST = has('--list');
 const ONLY = val('--only');
-const PROVIDER = val('--provider') || process.env.ART_PROVIDER || 'pollinations';
+const PROVIDER = val('--provider') || process.env.ART_PROVIDER || 'cloudflare';
 const REROLL = Number(val('--reroll') || 0);
 
 const RATIO = {
@@ -94,8 +105,8 @@ const RATIO = {
    Node's fetch has no default timeout, so a provider that accepts the
    connection and then never answers hangs the whole run forever — and
    because the request never rejects, the fallback chain below never fires.
-   That is exactly what Pollinations did on this batch: the generator sat on
-   one portrait indefinitely with four working providers configured behind
+   That is exactly what Pollinations did before it was removed: the generator
+   sat on one portrait indefinitely with four working providers behind
    it. A dead provider has to fail fast to be fallen back from. */
 const HTTP_TIMEOUT = Number(process.env.ART_TIMEOUT_MS || 90000);
 
@@ -115,17 +126,6 @@ async function fetchWithTimeout(url, opts = {}) {
 }
 
 const providers = {
-
-  /* Free, no account, no cap. The default for this project. */
-  async pollinations(prompt, size, seed) {
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
-                `?width=${size.w}&height=${size.h}&nologo=true&model=flux&seed=${seed}`;
-    const r = await fetchWithTimeout(url, { headers: { 'User-Agent': 'nova-impulse-artgen' } });
-    if (!r.ok) throw new Error(`pollinations HTTP ${r.status}`);
-    const buf = Buffer.from(await r.arrayBuffer());
-    if (buf.length < 1000) throw new Error('pollinations returned a suspiciously small body');
-    return { buf, ext: 'jpg' };
-  },
 
   /* Free tier with a monthly credit cap. Anime-tuned checkpoints. */
   async huggingface(prompt, size) {
@@ -224,7 +224,7 @@ const providers = {
 };
 
 /* Try the requested provider, then fall back to anything else usable. */
-const FALLBACK_ORDER = ['pollinations', 'cloudflare', 'together', 'huggingface', 'gemini'];
+const FALLBACK_ORDER = ['cloudflare', 'together', 'huggingface', 'gemini'];
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 

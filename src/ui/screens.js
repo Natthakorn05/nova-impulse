@@ -19,13 +19,29 @@ NI.screens = (function () {
      Screen switching
      ============================================================ */
 
-  const SCREENS = ['title', 'gender', 'class', 'route', 'story', 'battle', 'tree', 'chapter', 'hook'];
+  /* The screen list is read from the DOM, never hard-coded.
 
+     It used to be a literal array, and it silently stopped listing the five
+     endgame screens (nexus, echoes, summon, talk, breachend) once those were
+     added. show('nexus') then did exactly what it was told: it deactivated
+     every screen it knew about and activated none, because 'nexus' was not
+     in the list. The result was a black page with no console error, and it
+     took down the Echo roster, summoning and the whole Breach mode at once.
+
+     Anything carrying .screen with an id of screen-<name> is now switchable
+     by construction, so adding a screen to index.html is all it takes. */
   function show(name) {
-    for (const s of SCREENS) {
-      const node = $('screen-' + s);
-      if (node) node.classList.toggle('active', s === name);
+    const target = 'screen-' + name;
+    const nodes = document.querySelectorAll('.screen');
+    let found = false;
+    for (const node of nodes) {
+      const on = node.id === target;
+      node.classList.toggle('active', on);
+      if (on) found = true;
     }
+    /* A name with no matching element blanks the entire app. Fail loudly
+       rather than leaving the player staring at the background. */
+    if (!found) console.error(`[screens] no #${target} — the app is now blank`);
     current = name;
     window.scrollTo(0, 0);
   }

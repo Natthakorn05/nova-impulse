@@ -232,6 +232,27 @@ const CAST_LIMIT = {
 };
 function castLimit(key) { return CAST_LIMIT[key] != null ? CAST_LIMIT[key] : 0.03; }
 
+/**
+ * Per-asset hole allowances, same rule as CAST_LIMIT: one entry, one reason,
+ * never a global loosening.
+ */
+const HOLE_LIMIT = {
+  /* 3.5%, and every one of them is real negative space. This is a knight in
+     full plate holding a staff: the gaps sit between the fingers and the
+     shaft, inside the horns of the helm, and between the hanging banner and
+     the leg. Checked large over a split dark/light checker — the plate is
+     unbroken and the silhouette is correct.
+
+     It is worth being honest that this sits exactly on the figure the
+     comment below cites as known-bad. The hole count cannot tell a gap
+     between fingers from a bite taken out of a shoulder; it measures
+     silhouette complexity, and an ornate subject scores like a damaged one.
+     That is why the check prints "measurement only" and why this entry
+     records a verdict reached by looking rather than a threshold moved. */
+  enemy_priorBuild: 0.045
+};
+function holeLimit(key) { return HOLE_LIMIT[key] != null ? HOLE_LIMIT[key] : 0.03; }
+
 const flagged = [];
 for (const r of rows) {
   if (r.missing) { console.log(r.key.padEnd(22) + 'MISSING'); flagged.push(`${r.key}: file missing`); continue; }
@@ -251,8 +272,13 @@ for (const r of rows) {
      was checked on the contact sheet (tools/qa-sheet.mjs) and the holes are
      gaps between strands of hair, between fingers, and inside jewellery —
      real transparency in a correct cutout. The two that were genuinely eaten
-     read 3.5% and 29%, so the boundary is not close to anything. */
-  if (r.holes > 0.03) flagged.push(`${r.key}: ${(r.holes * 100).toFixed(1)}% of the subject is holes — the key ate into the character, use a chroma further from its palette`);
+     read 3.5% and 29%.
+
+     The 3.5% end of that is no longer a clean boundary: PRIOR BUILD, an
+     ornate knight, scores 3.5% out of pure negative space (see HOLE_LIMIT).
+     Treat anything in the 3-6% band as "go and look", not as a verdict —
+     above 6% nothing has ever been innocent. */
+  if (r.holes > holeLimit(r.key)) flagged.push(`${r.key}: ${(r.holes * 100).toFixed(1)}% of the subject is holes — the key ate into the character, use a chroma further from its palette`);
   if (r.coverage < 0.12) flagged.push(`${r.key}: only ${(r.coverage * 100).toFixed(1)}% of the frame is subject — the key probably ate it`);
   if (r.coverage > 0.92) flagged.push(`${r.key}: ${(r.coverage * 100).toFixed(1)}% opaque — the background was probably never removed`);
 }

@@ -119,9 +119,16 @@ NI.enemies = (function () {
       id: 'cinderMoth', name: 'Cinder Moth', tier: 'trash', chapter: 3,
       hp: 125, atk: 12, def: 8, mag: 20, spd: 20, crit: 10, evade: 18, xp: 44,
       element: 'fire',
-      chroma: 'magenta',
+      /* Was magenta, and the key ate the pale patches the model kept painting
+         onto the wings — near-white is closer to magenta in RGB than to any
+         other backdrop we use, so those markings sat inside the key's reach.
+         Green is the farthest chroma from white, and the moth carries no
+         green of its own. The prompt now also refuses the pale markings
+         outright: the cheapest hole to cut is the one never generated. */
+      chroma: 'green',
       art: 'a large moth with solid opaque charcoal-black body and solid opaque wing membranes ' +
-           'patterned in deep orange and black, a hard clean wing outline, ' +
+           'patterned in deep orange and black only, a hard clean wing outline, ' +
+           'no white markings, no cream patches, no pale spots, every marking fully saturated, ' +
            'glowing amber compound eyes, a thin line of live fire along the wing edges only',
       skills: [
         { name: 'Ember Dust', icon: 'flame', power: 15, scaling: 'mag', target: 'allEnemies', weight: 2,
@@ -258,7 +265,7 @@ NI.enemies = (function () {
 
     greyboxWalker: {
       id: 'greyboxWalker', name: 'Untextured', tier: 'trash', chapter: 7,
-      hp: 520, atk: 41, def: 28, mag: 18, spd: 15, crit: 9, evade: 6, xp: 70,
+      hp: 375, atk: 41, def: 28, mag: 18, spd: 15, crit: 9, evade: 6, xp: 70,
       element: 'physical',
       chroma: 'magenta',
       art: 'a humanoid figure built entirely from flat untextured grey development blocks, ' +
@@ -273,7 +280,7 @@ NI.enemies = (function () {
 
     strayInstance: {
       id: 'strayInstance', name: 'Stray Instance', tier: 'trash', chapter: 7,
-      hp: 450, atk: 39, def: 23, mag: 42, spd: 26, crit: 14, evade: 16, xp: 70,
+      hp: 325, atk: 39, def: 23, mag: 42, spd: 26, crit: 14, evade: 16, xp: 70,
       element: 'arcane',
       /* Pale blue on green left almost nothing but a head — the key could not
          separate frosted pale blue from chroma green. echo_shardling already
@@ -295,7 +302,7 @@ NI.enemies = (function () {
 
     continuityWarden: {
       id: 'continuityWarden', name: 'Continuity Warden', tier: 'boss', chapter: 7,
-      hp: 1900, atk: 44, def: 33, mag: 42, spd: 18, crit: 12, evade: 6, xp: 340,
+      hp: 1330, atk: 44, def: 33, mag: 42, spd: 18, crit: 12, evade: 6, xp: 340,
       element: 'light',
       chroma: 'magenta',
       art: 'a tall angular custodian construct of brushed steel and pale green signal light, ' +
@@ -318,7 +325,7 @@ NI.enemies = (function () {
 
     iterationEcho: {
       id: 'iterationEcho', name: 'Iteration Echo', tier: 'elite', chapter: 8,
-      hp: 640, atk: 42, def: 28, mag: 38, spd: 24, crit: 20, evade: 14, xp: 110,
+      hp: 460, atk: 42, def: 28, mag: 38, spd: 24, crit: 20, evade: 14, xp: 110,
       element: 'arcane',
       chroma: 'green',
       art: 'a humanoid duellist made of dark violet glass with a faint golden version number ' +
@@ -335,7 +342,7 @@ NI.enemies = (function () {
 
     priorBuild: {
       id: 'priorBuild', name: 'PRIOR BUILD', tier: 'boss', chapter: 8,
-      hp: 1820, atk: 45, def: 33, mag: 41, spd: 22, crit: 18, evade: 9, xp: 450,
+      hp: 1275, atk: 45, def: 33, mag: 41, spd: 22, crit: 18, evade: 9, xp: 450,
       element: 'dark',
       chroma: 'green',
       art: 'a tall armoured figure in cracked white and gold ceremonial plate identical to a hero ' +
@@ -356,7 +363,7 @@ NI.enemies = (function () {
 
     archivistShell: {
       id: 'archivistShell', name: 'Archivist Shell', tier: 'elite', chapter: 9,
-      hp: 720, atk: 43, def: 35, mag: 37, spd: 14, crit: 10, evade: 4, xp: 125,
+      hp: 520, atk: 43, def: 35, mag: 37, spd: 14, crit: 10, evade: 4, xp: 125,
       element: 'light',
       chroma: 'magenta',
       art: 'a hunched robed custodian of pale bone-white ceramic plating with no face, ' +
@@ -373,7 +380,7 @@ NI.enemies = (function () {
 
     architectProxy: {
       id: 'architectProxy', name: 'THE ARCHITECT', tier: 'boss', chapter: 9,
-      hp: 2320, atk: 49, def: 36, mag: 47, spd: 20, crit: 15, evade: 7, xp: 600,
+      hp: 1600, atk: 49, def: 36, mag: 47, spd: 20, crit: 15, evade: 7, xp: 600,
       element: 'arcane',
       /* Deliberately not monstrous. The chapter's whole argument is that the
          thing in the room is a committee of exhausted people who could not
@@ -399,7 +406,7 @@ NI.enemies = (function () {
 
     coreAspect: {
       id: 'coreAspect', name: 'Core Aspect', tier: 'elite', chapter: 10,
-      hp: 820, atk: 48, def: 30, mag: 46, spd: 27, crit: 18, evade: 12, xp: 155,
+      hp: 590, atk: 48, def: 30, mag: 46, spd: 27, crit: 18, evade: 12, xp: 155,
       element: 'storm',
       /* Third chroma for this one, and the chroma was never the problem.
          Magenta bled 33% pink through the white and gold; green bled 7% and
@@ -423,7 +430,7 @@ NI.enemies = (function () {
 
     impulseCore: {
       id: 'impulseCore', name: 'NOVA IMPULSE', tier: 'boss', chapter: 10,
-      hp: 2600, atk: 50, def: 36, mag: 48, spd: 23, crit: 16, evade: 6, xp: 900,
+      hp: 1620, atk: 50, def: 36, mag: 48, spd: 23, crit: 16, evade: 6, xp: 900,
       element: 'light',
       chroma: 'orange',
       art: 'an enormous suspended engine, three concentric rings of heavy dark gunmetal ' +

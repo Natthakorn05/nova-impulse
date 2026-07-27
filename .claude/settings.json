@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node tools/qa-balance.mjs *)",
+      "Bash(node tools/qa-balance.mjs)",
+      "Bash(node tools/qa-art.mjs *)",
+      "Bash(node tools/qa-art.mjs)",
+      "Bash(node tools/qa-story.mjs)",
+      "Bash(node tools/qa-echoes.mjs *)",
+      "Bash(node tools/qa-echoes.mjs)",
+      "Bash(node tools/qa-playthrough.mjs *)",
+      "Bash(node tools/qa-playthrough.mjs)",
+      "Bash(node tools/tune-bosses.mjs *)",
+      "Bash(node tools/tune-bosses.mjs)",
+      "Bash(npm run qa)",
+      "Bash(npm run qa:story)",
+      "Bash(npm run qa:art)",
+      "Bash(npm run qa:balance)",
+      "Bash(npm run qa:echoes)",
+      "PowerShell(node tools/qa-balance.mjs *)",
+      "PowerShell(node tools/qa-balance.mjs)",
+      "PowerShell(node tools/qa-art.mjs *)",
+      "PowerShell(node tools/qa-art.mjs)",
+      "PowerShell(node tools/qa-story.mjs)",
+      "PowerShell(node tools/qa-echoes.mjs *)",
+      "PowerShell(node tools/qa-echoes.mjs)",
+      "PowerShell(node tools/qa-playthrough.mjs *)",
+      "PowerShell(node tools/qa-playthrough.mjs)",
+      "PowerShell(node tools/tune-bosses.mjs *)",
+      "PowerShell(node tools/tune-bosses.mjs)",
+      "mcp__Claude_Browser__read_page",
+      "mcp__Claude_Browser__read_console_messages",
+      "mcp__Claude_Browser__read_network_requests",
+      "mcp__Claude_Browser__get_page_text",
+      "mcp__Claude_Browser__find",
+      "mcp__Claude_Browser__preview_list",
+      "mcp__Claude_Browser__preview_logs",
+      "mcp__Claude_Browser__tabs_context",
+      "mcp__Claude_Browser__resize_window"
+    ]
+  }
+}
