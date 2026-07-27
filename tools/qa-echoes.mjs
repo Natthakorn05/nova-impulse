@@ -65,7 +65,21 @@ for (const id of NI.echoes.ALL_IDS) {
     problems.push(`${id}: source enemy "${e.from}" does not exist — no art to draw`);
   }
   if (!NI.echoes.STARS[e.star]) problems.push(`${id}: unknown star tier "${e.star}"`);
-  if (!e.from && e.star !== 5) problems.push(`${id}: only 5-star Echoes may be summon-only`);
+  /* Summon-only is allowed for two reasons and no others: a 5-star banner
+     exclusive, or a Deep Index Echo, which is summon-only BY DEFINITION —
+     the whole premise of that banner is drafts and cached versions that
+     were never built into the world, so there is nothing to fight.
+
+     The rule is kept rather than dropped because the thing it originally
+     caught is still a real mistake: an ordinary low-rarity Echo whose
+     `from` was simply forgotten, leaving it unobtainable by catching for
+     no stated reason. That now fails exactly as before. */
+  if (!e.from && e.star !== 5 && !e.deep) {
+    problems.push(`${id}: only 5-star or Deep Index Echoes may be summon-only`);
+  }
+  if (e.deep && e.from) {
+    problems.push(`${id}: Deep Index Echoes must not be catchable — remove "from"`);
+  }
   if (!e.art) problems.push(`${id}: no art prompt — nothing to generate`);
   rarityCount[e.star] = (rarityCount[e.star] || 0) + 1;
 
@@ -206,19 +220,56 @@ function depthStats(echo, runs) {
    3. Economy
    ============================================================ */
 
+/* Pulls per simulated day. The featured Echo rotates every 24h, so a run
+   measured against a frozen clock is a run where five of the six legendary
+   Echoes are permanently rate-DOWN — it reported 1651 pulls to complete the
+   roster against a true figure less than half that. Nobody plays a gacha in
+   a single instant, so the clock has to move for the number to mean
+   anything. Twenty is a heavy but plausible session. */
+const PULLS_PER_DAY = 20;
+const DAY_MS = 24 * 3600 * 1000;
+
+const PULL_CAP = 20000;
+
+/**
+ * Average pulls to bind every Echo in the game.
+ *
+ * Has to be banner-aware. No single banner contains the whole roster — the
+ * Deep Index holds six Echoes that appear nowhere else — so a simulation
+ * that only ever pulls the default banner runs to the cap forever and
+ * reports an economy nobody can finish. It did exactly that, and still
+ * printed OK, because nothing was checking the number against the cap.
+ *
+ * The simulated player is rational: pull whichever banner still has
+ * something missing on it, preferring the smaller pool, which is what a
+ * player chasing a complete roster actually does.
+ */
 function pullsToComplete(trials) {
   let total = 0;
+  let hitCap = 0;
+
+  const banners = NI.echoes.BANNER_IDS
+    .map(id => ({ id, pool: NI.echoes.poolFor(id) }))
+    .sort((a, b) => a.pool.length - b.pool.length);
+
   for (let t = 0; t < trials; t++) {
     const state = { echoes: [], shards: 0, equipped: null };
     let pulls = 0;
-    while (NI.collection.progress(state).have < NI.echoes.ALL_IDS.length && pulls < 20000) {
+    /* Start each trial on a different day so no single featured rotation
+       is over-represented across the average. */
+    const start = Math.floor(Math.random() * 60) * DAY_MS;
+
+    while (NI.collection.progress(state).have < NI.echoes.ALL_IDS.length && pulls < PULL_CAP) {
+      const target = banners.find(b => b.pool.some(id => !NI.collection.owned(state, id)));
       state.shards = NI.breach.PULL_COST;
-      NI.collection.pull(state, Math.random);
+      const now = start + Math.floor(pulls / PULLS_PER_DAY) * DAY_MS;
+      NI.collection.pull(state, Math.random, now, target ? target.id : undefined);
       pulls++;
     }
+    if (pulls >= PULL_CAP) hitCap++;
     total += pulls;
   }
-  return Math.round(total / trials);
+  return { pulls: Math.round(total / trials), hitCap };
 }
 
 /* ============================================================
@@ -251,10 +302,21 @@ for (const id of sample) {
   }
 }
 
-const need = pullsToComplete(200);
+const econ = pullsToComplete(200);
+const need = econ.pulls;
 console.log(`\nGacha: ${need} pulls to complete the roster ` +
             `(${need * NI.breach.PULL_COST} shards, about ` +
             `${Math.round(need * NI.breach.PULL_COST / (NI.breach.shardsFor(8) * 8))} full runs to wave 8)`);
+
+/* A trial that runs out of pulls means some Echo is unreachable by any
+   route the simulation knows about — which is what happened the moment the
+   Deep Index existed and nothing was pulling it. The average alone hid it:
+   the number just quietly rose to the cap and the run still said OK. */
+if (econ.hitCap) {
+  problems.push(
+    `${econ.hitCap}/200 economy trials never completed the roster within ` +
+    `${PULL_CAP} pulls — some Echo is effectively unobtainable`);
+}
 if (storyOnly.length) {
   console.log(`Story-only (no Echo, by design): ${storyOnly.join(', ')}`);
 }

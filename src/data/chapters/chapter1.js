@@ -25,14 +25,24 @@ NI.story.chapter1 = {
       cast: [],
       title: 'The Nexus',
       text: {
-        kirito: `<p class="nar">The load screen doesn't fade. It <em>lands</em> — weight arriving in your knees,
+        /* Launch day is stated here, once, in both variants. It was missing
+           entirely, and without it the opening had no answer to "why am I
+           here" — forty thousand people were simply in a room. They queued
+           for this. That is what makes the door closing land. */
+        kirito: `<p class="nar">Nova Impulse sold out its launch allocation in nine minutes. Kirito was
+                 in the queue for six of them, which he had been quietly pleased about, and which
+                 is now the single stupidest fact of his life.</p>
+                 <p class="nar">The load screen doesn't fade. It <em>lands</em> — weight arriving in your knees,
                  air arriving in your lungs, a floor arriving under your boots with the specific
                  finality of a door closing.</p>
-                 <p class="nar">Kirito has played eleven of these. He knows what a login is supposed to feel like.</p>
+                 <p class="nar">He has played eleven of these. He knows what a login is supposed to feel like.</p>
                  <p class="nar">It is not supposed to feel like this.</p>`,
-        masha:  `<p class="nar">Masha's first thought, standing in a cathedral of blue light with forty thousand
-                 strangers, is that the air is <em>wrong.</em> Games don't do air. Games do visuals and
-                 sound and a vague suggestion of wind.</p>
+        masha:  `<p class="nar">Forty thousand people wanted to be here tonight. Masha wanted it enough to
+                 set an alarm for three in the morning, and she got in, and she told everyone she
+                 knew, and now she is standing in a cathedral of blue light with all forty thousand
+                 of them.</p>
+                 <p class="nar">Her first thought is that the air is <em>wrong.</em> Games don't do air. Games do
+                 visuals and sound and a vague suggestion of wind.</p>
                  <p class="nar">This air is cold at the back of her throat. It tastes faintly of copper.</p>
                  <p class="nar">She notices it before anyone else does. She usually does.</p>`
       },
@@ -50,6 +60,44 @@ NI.story.chapter1 = {
              silence — the sound of a very large number of people deciding, individually, that
              this must be a joke.</p>
              <p class="nar">Then the screaming starts, and it does not stop for a long time.</p>`,
+      next: 'c1_menu'
+    },
+
+    /* The player is told logout is disabled and then simply believes it. That
+       was the weakest link in the opening: the single most important fact
+       about this world arrived as an announcement nobody tested. So they
+       test it. It costs one beat and it is the difference between being told
+       the door is locked and putting your hand on it. */
+    c1_menu: {
+      scene: 'scene_nexus',
+      cast: [],
+      text: {
+        kirito: `<p class="nar">Kirito opens the menu before he has finished reading the message.
+                 Two fingers, drawn down — a gesture he has made ten thousand times in eleven
+                 different worlds, so automatic that his hand starts it while the rest of him
+                 is still deciding whether to be afraid.</p>
+                 <p class="nar">The menu opens. It is immaculate. Inventory, party, map, settings,
+                 audio, accessibility, key bindings, credits.</p>
+                 <p class="nar">Where logout should be, there is nothing. Not a greyed-out line.
+                 Not an error. The list simply closes over the space as though it had never
+                 been allocated.</p>
+                 <p class="nar">Around him, forty thousand people make the same small gesture at
+                 almost the same moment, and Kirito understands two things at once: that this
+                 is not a lock, because a lock admits there is a door — and that somebody
+                 tidied up afterwards.</p>`,
+        masha:  `<p class="nar">Masha opens the menu because everyone around her is opening the
+                 menu. It is the loneliest thing she has ever seen: forty thousand strangers
+                 in one room, all making the same small private gesture at the air, all
+                 checking the same thing, none of them looking at each other.</p>
+                 <p class="nar">Inventory. Party. Map. Settings. All of it there, all of it
+                 polished, someone's careful work.</p>
+                 <p class="nar">No logout. No gap where a logout used to be, either — nothing
+                 crossed out, nothing broken. Just a clean list that was built without one.</p>
+                 <p class="nar">"It's not broken," she says, to nobody, in a voice that carries
+                 further than she means it to. "Somebody <em>finished</em> this."</p>
+                 <p class="nar">A man near her starts crying. She thinks that is probably the
+                 correct response and is faintly annoyed with herself for not managing it.</p>`
+      },
       next: 'c1_meet'
     },
 
@@ -321,17 +369,44 @@ NI.story.chapter1 = {
       next: 'rt1_hub'
     },
 
+    /* This branch used to end the chapter's only quiet scene with nothing in
+       it but a mood. That mattered more than it looks: the open branch is
+       where the game states its actual premise — that this was built on
+       purpose, by someone, who is watching — and a player who chose to stay
+       guarded reached chapter 2 having never been told there was a mystery
+       at all. The premise is not a reward for picking the warm option. So it
+       lands here too, in the shape this branch has earned: not said out loud
+       by the person who won't say it, but arrived at anyway. */
     c1_bond_guard: {
       scene: 'scene_field',
       cast: { kirito: ['masha'], masha: ['kirito'] },
       text: {
         kirito: `<p>"Sure," Masha says, easily, and Kirito can hear exactly how much it cost her
                  to be easy about it.</p>
-                 <p>She doesn't ask again that night. She also doesn't move away from the boulder.</p>`,
+                 <p>She doesn't ask again that night. She also doesn't move away from the boulder.</p>
+                 <p class="nar">He keeps the rest of it to himself, and the rest of it is this: the
+                 damage numbers are tuned. The respawn has a threshold, and a threshold is a
+                 number somebody chose. Nothing here is broken. Every single part of it is
+                 working exactly as it was built to work.</p>
+                 <p class="nar">Which means this is not an accident that trapped them. It is a
+                 design, and designs have authors, and authors watch to see what their work
+                 does.</p>
+                 <p class="nar">He looks at the ridgeline for a long time and does not say any of
+                 it, because saying it would make it true in the air between them, and she has
+                 had enough of a day.</p>`,
         masha:  `<p>Kirito nods once and goes back to watching the ridgeline, and Masha sits with
                  the specific frustration of caring about someone who treats their own fear like
                  classified material.</p>
-                 <p>She stays anyway. She's stubborn like that.</p>`
+                 <p>She stays anyway. She's stubborn like that.</p>
+                 <p class="nar">And because she is stubborn, she works at it herself, the way she
+                 works at everything — out loud, in her own head, refusing to leave it alone.</p>
+                 <p class="nar">The menu had no logout and no hole where one had been. The slime
+                 hurt exactly enough to frighten her and not enough to stop her. She died
+                 nothing like enough to find out what dying does.</p>
+                 <p class="nar">Nothing here is broken. That is the part nobody in that cathedral
+                 was saying. Everything is working, which means somebody built it this way, which
+                 means somebody is somewhere finding out whether it worked.</p>
+                 <p class="nar">She decides she would quite like to meet them.</p>`
       },
       next: 'rt1_hub'
     },
@@ -424,6 +499,14 @@ NI.story.chapter1 = {
                  <p>"I want to <em>ask them things,</em> Kirito." She's already walking. "That's how
                  you find out what's happening. You ask."</p>`
       },
+      /* The chapter used to end on a direction — east, smoke, probably a town —
+         and a direction is not an objective. A player closing the browser here
+         could not have said what they were trying to DO. Now they can. */
+      after: `<span class="sysmsg">OBJECTIVE — REACH THE EASTERN SETTLEMENT.</span>
+              <span class="sysmsg">FIND SOMEONE WHO WAS HERE BEFORE TONIGHT.</span>
+              <p class="nar">Nobody assigned it. No quest marker unfolded in the air, no window
+              opened to be dismissed. They decided it themselves, out loud, in a field, which
+              turns out to be how everything worth doing gets decided from here on.</p>`,
       goChapter: 2
     }
 

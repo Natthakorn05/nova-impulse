@@ -247,10 +247,19 @@ function makeMember(id, classId) {
   return { id, name: id, classId, level: 1, xp: 0, points: 1, unlocked: [], hp: stats.hp, mp: stats.mp };
 }
 
+/* Which lead the simulated player controls. This matters now that the two
+   carry different battle traits: slot 0 gets the trait, so a sim hard-coded
+   to Kirito measures Read Ahead every time and never once measures Called
+   It. Half the game would be untested and the report would look complete —
+   the same shape of hole as the Echo default. */
+const LEAD_ARG = process.argv.indexOf('--lead');
+const LEAD = LEAD_ARG > 0 && process.argv[LEAD_ARG + 1] === 'masha' ? 'masha' : 'kirito';
+const MATE = LEAD === 'kirito' ? 'masha' : 'kirito';
+
 function runOnce(playerClass, fixedMate) {
   const mateClass = fixedMate || NI.classes.randomClassId(null);
   const state = {
-    party: [makeMember('kirito', playerClass), makeMember('masha', mateClass)],
+    party: [makeMember(LEAD, playerClass), makeMember(MATE, mateClass)],
     trust: 0
   };
 
@@ -350,7 +359,9 @@ const echoLabel = ECHO
   ? `${ECHO.id} bond ${ECHO.bond} (from ch${ECHO_FROM})`
   : 'none — two-person party throughout';
 console.log(`${RUNS} runs per class, ${CHAPTERS.flat().length} battles per run`);
-console.log(`chapters ${CHAPTER_NUMS[0]}-${CHAPTER_NUMS[CHAPTER_NUMS.length - 1]}   echo: ${echoLabel}\n`);
+const trait = NI.characters.traitOf(LEAD);
+console.log(`chapters ${CHAPTER_NUMS[0]}-${CHAPTER_NUMS[CHAPTER_NUMS.length - 1]}   echo: ${echoLabel}`);
+console.log(`lead: ${LEAD}${trait ? ` — ${trait.name}` : ''}\n`);
 console.log('class     boss win   battles won   end LV   LV by chapter');
 console.log('-------------------------------------------------------------------');
 

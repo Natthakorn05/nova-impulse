@@ -31,7 +31,16 @@ NI.characters = (function () {
         'black high-collar coat with silver trim, sword drawn in ready stance',
       color: '#5b8dff',
       /* How the OTHER character refers to them, by relationship stage */
-      calledBy: { low: 'Kirito', mid: 'Kirito', high: 'Kiri' }
+      calledBy: { low: 'Kirito', mid: 'Kirito', high: 'Kiri' },
+      /* See LEAD TRAITS below. Kirito's rewards setting a fight up. */
+      trait: {
+        id: 'read_ahead',
+        name: 'Read Ahead',
+        desc: 'Deals 20% more damage to any enemy already suffering a status effect.',
+        note: 'He is not faster than you. He got there earlier.'
+      },
+      /* How a lost fight is framed on this path. He audits it. */
+      onDefeat: 'Kirito is already going back over it, looking for the move he missed.'
     },
 
     masha: {
@@ -47,9 +56,48 @@ NI.characters = (function () {
         'anime style full body battle sprite, teenage girl, long ash-blonde hair tied back, ' +
         'white and teal combat jacket, weapon raised in ready stance',
       color: '#ff6fae',
-      calledBy: { low: 'Masha', mid: 'Masha', high: 'Mash' }
+      calledBy: { low: 'Masha', mid: 'Masha', high: 'Mash' },
+      /* Hers rewards the fight going wrong, which is the opposite half of
+         the same design — see LEAD TRAITS below. */
+      trait: {
+        id: 'called_it',
+        name: 'Called It',
+        desc: 'The first time anyone in the party drops below half HP, ' +
+              'gains +25% damage and +8 SPD for three turns.',
+        note: 'She said this would happen. She hates being right.'
+      },
+      onDefeat: 'Masha says the number out loud — how far off they were — and nobody argues.'
     }
   };
+
+  /* ============================================================
+     LEAD TRAITS
+
+     The two leads had identical mechanics and a 0.3% difference in word
+     count, which made a second playthrough a reskin rather than a second
+     look at the world. These are small — around a 10% swing — but they
+     pull in opposite directions on purpose:
+
+       Kirito rewards the fight going to plan. Mark something, slow it,
+       burn it, and he hits harder. He is the payoff for setup.
+
+       Masha rewards the fight going wrong. She does nothing at all until
+       someone is badly hurt, and then she is the best unit on the field.
+       She is the payoff for surviving.
+
+     So the same party, same class and same encounter plays differently
+     depending on who you are: one of them wants you to open with control
+     skills, the other quietly wants you to take the hit. That is the
+     divergence doing real work rather than swapping adjectives.
+
+     Deliberately NOT tied to class — you can be a Mage on either path, and
+     the trait is what makes those two Mages different.
+     ============================================================ */
+
+  function traitOf(pathOrId) {
+    const l = LEADS[pathOrId];
+    return (l && l.trait) || null;
+  }
 
   /* ============================================================
      Romance cast (§11) — the six who arrive after Chapter 5.
@@ -238,6 +286,6 @@ NI.characters = (function () {
   return {
     LEADS, ROMANCE, ROMANCE_IDS, ROUTE_IDS,
     lead, romance, anyone, companionOf, resolve, routePerson, routeName, routesFor,
-    trustStage, addressPlayer, TRUST_STAGES
+    trustStage, addressPlayer, TRUST_STAGES, traitOf
   };
 })();

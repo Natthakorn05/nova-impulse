@@ -127,16 +127,50 @@ NI.collection = (function () {
   const BASE_4       = 0.06;
   const PITY_4       = 10;
 
-  function fiveStarChance(pity) {
-    if (pity + 1 >= PITY_AT) return 1;
-    if (pity + 1 <= SOFT_PITY_AT) return BASE_5;
-    return Math.min(1, BASE_5 + (pity + 1 - SOFT_PITY_AT) * SOFT_STEP);
+  /* Each banner supplies its own base rate and thresholds; these stay as the
+     defaults so anything calling without a banner behaves as before. */
+  function fiveStarChance(pity, b) {
+    const base = b ? b.base5 : BASE_5;
+    const soft = b ? b.softAt : SOFT_PITY_AT;
+    const hard = b ? b.pityAt : PITY_AT;
+    if (pity + 1 >= hard) return 1;
+    if (pity + 1 <= soft) return base;
+    return Math.min(1, base + (pity + 1 - soft) * SOFT_STEP);
   }
 
-  /** Weighted pick within one star tier. */
-  function pickOfStar(star, r) {
-    const pool = NI.echoes.pullTable()
-      .filter(t => NI.echoes.get(t.id).star === star);
+  /** Weighted pick within one star tier, restricted to the banner's pool. */
+  function pickOfStar(star, r, now, bannerId) {
+    const b = NI.echoes.banner(bannerId);
+
+    /* Featured rate-up. Applied only AFTER the tier has been decided, so it
+       changes which 5-star you receive and never how often one arrives —
+       the pity curve above and the shard economy are untouched by it.
+
+       `now` is injectable because the featured Echo rotates daily. Without
+       it, anything that simulates thousands of pulls in a loop holds the
+       clock still and measures a world where one Echo is featured forever
+       and the other five are permanently suppressed — which doubled the
+       measured roster-completion cost and was purely an artefact. */
+    if (star === 5 && b.hasFeatured && r() < NI.echoes.FEATURED_RATE) {
+      return NI.echoes.featured(now);
+    }
+
+    const allowed = NI.echoes.poolFor(b.id);
+    let pool = NI.echoes.pullTable()
+      .filter(t => allowed.indexOf(t.id) >= 0 && NI.echoes.get(t.id).star === star);
+
+    /* A small banner can legitimately have no Echo at some tier. Falling
+       back to the next tier down beats returning undefined and crashing a
+       pull — and it is the honest resolution, since the player was owed
+       *something* from a tier that does not exist here. */
+    if (!pool.length) {
+      for (let s = star - 1; s >= 3 && !pool.length; s--) {
+        pool = NI.echoes.pullTable()
+          .filter(t => allowed.indexOf(t.id) >= 0 && NI.echoes.get(t.id).star === s);
+      }
+    }
+    if (!pool.length) return allowed[0];
+
     const total = pool.reduce((n, t) => n + t.weight, 0);
     let x = r() * total;
     let chosen = pool[0];
@@ -144,21 +178,51 @@ NI.collection = (function () {
     return chosen.id;
   }
 
-  function pull(state, rand) {
+  /* ------------------------------------------------------------
+     Pull history
+
+     Kept in the save so the summon screen can show what the account has
+     actually done. Capped, and stores ids rather than whole records —
+     a log that grows without limit would quietly bloat a save file that
+     lives in localStorage.
+     ------------------------------------------------------------ */
+
+  const HISTORY_MAX = 60;
+
+  function logPull(state, report, bannerId) {
+    if (!Array.isArray(state.pullLog)) state.pullLog = [];
+    state.pullLog.unshift({ id: report.id, star: report.star, at: Date.now(), b: bannerId });
+    if (state.pullLog.length > HISTORY_MAX) state.pullLog.length = HISTORY_MAX;
+  }
+
+  function history(state) { return state.pullLog || []; }
+
+  /**
+   * One pull on a banner.
+   *
+   * Pity lives under the banner's own `pityKey`, so progress toward a
+   * guarantee belongs to the banner it was earned on. A shared counter
+   * would let a player grind 79 pulls of pity somewhere cheap and cash it
+   * in somewhere else, which the interface does not promise and players
+   * would rightly treat as a bug.
+   */
+  function pull(state, rand, now, bannerId) {
     if (!canPull(state)) return null;
     const r = rand || Math.random;
+    const b = NI.echoes.banner(bannerId);
+    const key = b.pityKey;
     state.shards -= NI.breach.PULL_COST;
 
-    state.pity = (state.pity || 0);
+    state[key] = (state[key] || 0);
     state.pity4 = (state.pity4 || 0);
 
     let star;
-    if (r() < fiveStarChance(state.pity)) {
+    if (r() < fiveStarChance(state[key], b)) {
       star = 5;
-      state.pity = 0;
+      state[key] = 0;
       state.pity4 = 0;
     } else {
-      state.pity += 1;
+      state[key] += 1;
       /* Four-star floor: guaranteed by the tenth pull without one. */
       if (state.pity4 + 1 >= PITY_4 || r() < BASE_4) {
         star = 4;
@@ -169,12 +233,48 @@ NI.collection = (function () {
       }
     }
 
-    const report = grant(state, pickOfStar(star, r));
+    const report = grant(state, pickOfStar(star, r, now, b.id));
     if (report) {
       report.star = star;
-      report.pity = PITY_AT - state.pity;
+      report.banner = b.id;
+      report.pity = b.pityAt - state[key];
+      report.featured = b.hasFeatured && report.id === NI.echoes.featured(now);
+      logPull(state, report, b.id);
     }
     return report;
+  }
+
+  /** Pity progress on a given banner, for the UI. */
+  function pityOf(state, bannerId) {
+    const b = NI.echoes.banner(bannerId);
+    return { at: state[b.pityKey] || 0, soft: b.softAt, hard: b.pityAt };
+  }
+
+  /**
+   * Ten pulls in one action — the primary summon in every modern gacha,
+   * and the reason the four-star floor exists at all.
+   *
+   * Deliberately a loop over the single pull rather than its own rate
+   * maths: every guarantee, the pity counters and the duplicate handling
+   * are already correct in there, and a second implementation of the same
+   * rules is a second thing to get out of step. It also means a ten-pull
+   * and ten single pulls are genuinely identical, which is the honest
+   * behaviour and the one players check.
+   *
+   * @returns {Array} up to ten grant reports; short if shards run out
+   */
+  function pullTen(state, rand, now, bannerId) {
+    const out = [];
+    for (let i = 0; i < 10; i++) {
+      const r = pull(state, rand, now, bannerId);
+      if (!r) break;
+      out.push(r);
+    }
+    return out;
+  }
+
+  function canPullTen(state) {
+    return (state.shards || 0) >= NI.breach.PULL_COST * 10;
   }
 
   /* ------------------------------------------------------------
@@ -228,6 +328,8 @@ NI.collection = (function () {
 
   return {
     all, owned, equipped, grant, rollCatches,
-    canPull, pull, equip, release, progress, PITY_AT
+    canPull, canPullTen, pull, pullTen, history, pityOf,
+    equip, release, progress,
+    PITY_AT, SOFT_PITY_AT, BASE_5, BASE_4, PITY_4
   };
 })();

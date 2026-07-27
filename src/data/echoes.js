@@ -528,9 +528,28 @@ NI.echoes = (function () {
       id: 'iterling', name: 'Iterling', from: 'iterationEcho',
       star: 4, role: 'striker', element: 'arcane',
       chroma: 'green',
-      art: 'a small companion creature made of dark violet glass with a faint golden number ' +
-           'etched glowing on its chest, smooth blank rounded face, two tiny thin blades ' +
-           'held low, compact alert stance',
+      /* Was "a small companion creature ... rounded face" and the model heard
+         "mascot": it returned a cute purple cartoon cat with a number on its
+         belly and no blades at all. "Creature" plus "rounded" is a request
+         for a Pokemon. It is a miniature of the Iteration Echo — a small
+         duellist, a person-shape — so it is described as one, and the animal
+         reading is refused outright. */
+      /* Third attempt, and the first two both came back as a purple cartoon
+         cat — the second one wearing armour, because flux-1-schnell has no
+         negative prompt and reads "no cat features, no ears, no tail" as
+         three more mentions of cats. Negation does not subtract here, it
+         emphasises. So every negative is gone and the description is purely
+         what the thing IS: the same armoured duellist as its parent enemy,
+         built at half height. The words creature, companion, small and
+         rounded are all avoided too — those are what asked for a mascot in
+         the first place. */
+      art: 'a short slender armoured swordsman standing in a fighting stance, ' +
+           'human proportions with a narrow waist and long legs, dark desaturated ' +
+           'violet plate armour with visible panel seams, a full helmet with a smooth ' +
+           'blank faceplate and no features, a dull gold number stencilled on the ' +
+           'breastplate, one thin straight sword held low in the right hand, ' +
+           'muted palette, clean anime line art, soft cel shading, ' +
+           'grim and quietly unsettling',
       blurb: 'A draft of something. It will not say which attempt it came ' +
              'from and gets visibly uncomfortable when asked.',
       base:   { hp: 66, atk: 15, mag: 13, def: 9, spd: 17, crit: 18, evade: 11 },
@@ -585,6 +604,191 @@ NI.echoes = (function () {
           target: 'enemy', element: 'storm', weight: 3, hits: 2, lifesteal: 0.25 },
         { name: 'Cascade', icon: 'nova', power: 16, scaling: 'mag',
           target: 'allEnemies', element: 'storm', weight: 2 }
+      ]
+    },
+
+    /* ================================================================
+       THE DEEP INDEX
+
+       Six Echoes that are not bound from anything you fight. They are
+       what the archive is made OF: drafts, cached copies, versions that
+       were never shipped. Nothing in the world drops them, which is why
+       they exist as their own banner rather than being folded into the
+       main pool.
+
+       They also carry the art guide's rarity progression (§9) rather
+       than all being cute: the three-stars are odd but approachable, the
+       four-stars are wrong in a way you notice, and the five-stars use
+       the `echoDeep` framing and are meant to be unsettling to look at.
+       `artKind` is what selects that framing.
+       ================================================================ */
+
+    stubling: {
+      id: 'stubling', name: 'Stubling', deep: true,
+      star: 3, role: 'guard', element: 'physical',
+      chroma: 'magenta',
+      art: 'a small four-legged creature that is only half finished, ' +
+           'the front half fully rendered in soft grey-green plating, ' +
+           'the back half plain untextured flat grey with visible flat polygon edges, ' +
+           'two calm dark dot eyes, standing patiently',
+      blurb: 'Nobody ever came back to finish it. It does not appear to ' +
+             'mind, and follows you at exactly the speed you walk.',
+      base:   { hp: 92, atk: 8,  mag: 5,  def: 14, spd: 7,  crit: 3, evade: 2 },
+      growth: { hp: 17, atk: 1.5, mag: 0.9, def: 2.0, spd: 0.7 },
+      aura:   { def: 2 },
+      skills: [
+        { name: 'Placeholder', icon: 'barrier', power: 0, scaling: 'def',
+          target: 'self', element: 'none', weight: 2,
+          selfBuff: { def: 14, turns: 2 } },
+        { name: 'Blunt Pass', icon: 'hammer', power: 10, scaling: 'atk',
+          target: 'enemy', element: 'physical', weight: 3 }
+      ]
+    },
+
+    cacheling: {
+      id: 'cacheling', name: 'Cacheling', deep: true,
+      star: 3, role: 'seer', element: 'arcane',
+      chroma: 'orange',
+      art: 'a small rounded creature of dull slate-blue plating with a wide flat head, ' +
+           'a single horizontal band of pale cyan light across the face where eyes ' +
+           'would be, short stubby limbs, a faint grid pattern etched into its back',
+      blurb: 'It remembers three things that have already been deleted and ' +
+             'will show you all of them, repeatedly, unprompted.',
+      base:   { hp: 60, atk: 7,  mag: 13, def: 7, spd: 14, crit: 6, evade: 7 },
+      growth: { hp: 12, atk: 1.2, mag: 2.3, def: 1.1, spd: 1.3 },
+      aura:   { mag: 2 },
+      skills: [
+        { name: 'Recall', icon: 'mark', power: 9, scaling: 'mag',
+          target: 'enemy', element: 'arcane', weight: 3,
+          status: { type: 'mark', chance: 0.7, turns: 2, power: 0.22 } },
+        { name: 'Stale Read', icon: 'drain', power: 12, scaling: 'mag',
+          target: 'enemy', element: 'arcane', weight: 2, lifesteal: 0.3 }
+      ]
+    },
+
+    draftling: {
+      id: 'draftling', name: 'Draftling', deep: true,
+      star: 4, role: 'striker', element: 'arcane',
+      /* Green left a pool of residue under it: the model drew a cast shadow
+         on the backdrop, and a shadow made of the key colour is exactly what
+         the key cannot tell from backdrop. Orange sits opposite violet and
+         the ground contact is now described as absent rather than left to
+         the model's instincts. */
+      chroma: 'orange',
+      /* No-shadow has to come FIRST. Buried at the end of a long prompt it
+         was either ignored or truncated, and the model painted a maroon
+         ellipse under the feet — a shadow that is not the key colour, so
+         the cutout keeps it and the sprite ships with a blob attached. */
+      art: 'floating in empty space with no ground and no shadow, ' +
+           'a lean quadruped creature of translucent violet drawn as clean pale ' +
+           'line work, the interior never coloured in, ' +
+           'one solid faceted shoulder plate, long thin legs, head lowered',
+      blurb: 'A sketch of something that was going to be dangerous. The ' +
+             'sketch is dangerous enough.',
+      base:   { hp: 70, atk: 17, mag: 11, def: 8, spd: 19, crit: 16, evade: 12 },
+      growth: { hp: 13, atk: 2.9, mag: 1.7, def: 1.2, spd: 1.6 },
+      aura:   { atk: 2, crit: 2 },
+      skills: [
+        { name: 'Rough Cut', icon: 'slash', power: 14, scaling: 'atk',
+          target: 'enemy', element: 'arcane', weight: 3, hits: 2 },
+        { name: 'Unfinished', icon: 'thrust', power: 18, scaling: 'atk',
+          target: 'enemy', element: 'arcane', weight: 2, defPierce: 0.25 }
+      ]
+    },
+
+    patchling: {
+      id: 'patchling', name: 'Patchling', deep: true,
+      star: 4, role: 'warden', element: 'light',
+      /* This one defeated three of the four chromas, which is the same
+         corner Matikanetannhauser painted us into and has the same answer.
+         Magenta: bone-white plating sits next to it, so the anti-aliased
+         seams picked up a pink fringe and the key perforated every one of
+         them. Green: bronze and tan are olive-adjacent and it came back 15%
+         tinted. Orange would be worse still, since bronze IS orange. The
+         palette is warm end to end and has no blue anywhere in it, so blue
+         is the only key that is far from all of it. */
+      chroma: 'blue',
+      /* "three slightly different versions of itself standing in the same
+         place" produced three separate animals side by side — a litter, not
+         an Echo. The model counts nouns; it does not do conceptual overlay.
+         Described now as ONE body with doubled edges, which is the same idea
+         expressed as a drawing instruction instead of a concept. */
+      /* Third attempt, and the lesson is to stop describing the CONCEPT.
+         "Three versions of itself" drew three animals; "ghosted duplicate
+         outline, fading" drew a white halo; "hard-edged duplicate outline
+         like a misprint" drew speckled erosion that reads as damaged art.
+         The model cannot render an abstract idea about versioning — it can
+         only render surfaces. So the idea of three unmerged revisions is
+         now expressed as something physically drawable: mismatched armour
+         panels in three shades that do not line up. Same meaning, and it
+         renders clean every time. */
+      art: 'floating in empty space with no ground and no shadow, ' +
+           'one small sturdy four-legged creature, exactly one animal, ' +
+           'its body plated in mismatched armour panels of three different ' +
+           'shades of bronze and bone-white, the panel edges not lining up, ' +
+           'clear visible seams between panels, a seam of cyan light along ' +
+           'one mismatch, smooth clean silhouette',
+      blurb: 'Three revisions that were never merged. They disagree about ' +
+             'small things and have learned to work around it.',
+      base:   { hp: 108, atk: 11, mag: 12, def: 19, spd: 8, crit: 4, evade: 3 },
+      growth: { hp: 19, atk: 1.7, mag: 1.9, def: 2.3, spd: 0.8 },
+      aura:   { hp: 8, def: 2 },
+      skills: [
+        { name: 'Merge Conflict', icon: 'quake', power: 12, scaling: 'mag',
+          target: 'allEnemies', element: 'light', weight: 2,
+          status: { type: 'slow', chance: 0.4, turns: 2 } },
+        { name: 'Roll Forward', icon: 'regen', power: 0, scaling: 'def',
+          target: 'self', element: 'none', weight: 2, selfHeal: 22 }
+      ]
+    },
+
+    authorling: {
+      id: 'authorling', name: 'Authorling', deep: true, artKind: 'echoDeep',
+      star: 5, role: 'seer', element: 'light',
+      chroma: 'blue',
+      art: 'a small robed figure barely knee high, face entirely hidden inside a ' +
+           'deep hood, dust-coloured layered cloth, one pale hand holding a stylus ' +
+           'far too large for it, a narrow seam of cyan light down the front of the ' +
+           'robe, standing completely still',
+      blurb: 'One of the eleven, or a copy of one, scaled down to something ' +
+             'portable. It writes down everything you do and never shows you.',
+      base:   { hp: 82, atk: 11, mag: 24, def: 12, spd: 17, crit: 11, evade: 8 },
+      growth: { hp: 14, atk: 1.6, mag: 3.4, def: 1.6, spd: 1.4 },
+      aura:   { mag: 4, mp: 6 },
+      skills: [
+        { name: 'Revise', icon: 'nova', power: 18, scaling: 'mag',
+          target: 'allEnemies', element: 'light', weight: 3, defPierce: 0.2 },
+        { name: 'Footnote', icon: 'trap', power: 13, scaling: 'mag',
+          target: 'enemy', element: 'light', weight: 2,
+          status: { type: 'stun', chance: 0.3, turns: 1 } }
+      ]
+    },
+
+    endling: {
+      id: 'endling', name: 'Endling', deep: true, artKind: 'echoDeep',
+      star: 5, role: 'striker', element: 'dark',
+      /* First pass came back a thin grey humanoid — a generic alien — and the
+         key ate 93% of the frame because there was barely a subject there to
+         keep. Thin limbs and neutral grey are the two things a chroma key
+         handles worst. Rebuilt with bulk and a stated dark colour so there is
+         something solid to cut around, on magenta because charcoal is far
+         from it in a way it is not far from green. */
+      chroma: 'magenta',
+      art: 'a stocky armoured creature standing upright on two thick legs, ' +
+           'heavy matte charcoal-black plating, broad shoulders, barrel chest, ' +
+           'a smooth blank faceplate with no features, one arm longer and ' +
+           'heavier than the other, thick limbs, solid opaque silhouette',
+      blurb: 'The last instance of something that was removed in a patch. It ' +
+             'is not angry about it. It simply has nowhere else to be.',
+      base:   { hp: 78, atk: 25, mag: 13, def: 10, spd: 21, crit: 20, evade: 14 },
+      growth: { hp: 13, atk: 3.6, mag: 1.8, def: 1.3, spd: 1.7 },
+      aura:   { atk: 4, crit: 3 },
+      skills: [
+        { name: 'Deprecated', icon: 'thrust', power: 21, scaling: 'atk',
+          target: 'enemy', element: 'dark', weight: 3, defPierce: 0.3 },
+        { name: 'Last Of', icon: 'drain', power: 17, scaling: 'atk',
+          target: 'enemy', element: 'dark', weight: 2, lifesteal: 0.35,
+          critBonus: 12 }
       ]
     }
   };
@@ -663,8 +867,116 @@ NI.echoes = (function () {
     return ALL_IDS.map(id => ({ id, weight: rarity(ECHOES[id].star).pull }));
   }
 
+  /* ------------------------------------------------------------
+     Featured signal
+
+     A banner needs something to be ABOUT. Without one the summon screen
+     is a slot machine with a lore skin: nothing on it answers "what am I
+     pulling for", which is the question the whole screen exists to make
+     the player ask.
+
+     The rotation is derived from the date rather than stored, so it needs
+     no server, no live-ops and no save migration, and two players on the
+     same day see the same signal. A fixed featured Echo would have been
+     simpler, but then the banner never changes and "featured" stops
+     meaning anything by the second session.
+
+     Only the five-stars rotate. Featuring a common would be a banner
+     nobody wants, and the rate-up below only touches WHICH five-star you
+     get — never how often you get one — so the pity curve and the
+     economy are untouched by design.
+     ------------------------------------------------------------ */
+
+  /* Only the open-index Echoes rotate as the featured signal — the deep
+     ones have their own banner and are not obtainable on this one. */
+  const FEATURED_POOL = ALL_IDS.filter(id => ECHOES[id].star === 5 && !ECHOES[id].deep);
+  const ROTATE_HOURS = 24;
+
+  /** Days since epoch — the rotation index. */
+  function cycleIndex(now) {
+    return Math.floor((now || Date.now()) / (ROTATE_HOURS * 3600 * 1000));
+  }
+
+  function featured(now) {
+    return FEATURED_POOL[cycleIndex(now) % FEATURED_POOL.length];
+  }
+
+  /** Milliseconds until the signal rotates, for the banner countdown. */
+  function featuredEndsIn(now) {
+    const t = now || Date.now();
+    const period = ROTATE_HOURS * 3600 * 1000;
+    return period - (t % period);
+  }
+
+  /** Chance that a 5-star roll resolves to the featured Echo. */
+  const FEATURED_RATE = 0.5;
+
+  /* ------------------------------------------------------------
+     Banners
+
+     Two real pull tables, not two tabs over one. Cosmetic banner
+     navigation would be four buttons pretending to be a decision, and a
+     player who works out that every banner draws from the same pool has
+     been lied to by the interface.
+
+     They differ on the axis players actually care about — what is IN
+     there and how long the guarantee takes — so choosing between them is
+     a real decision:
+
+       OPEN INDEX  large pool, a rotating featured five-star, standard
+                   80-pull guarantee. The one you use to fill the roster.
+       DEEP INDEX  six Echoes only, no featured, double the base
+                   five-star rate and a guarantee at 60. Far more likely
+                   to give you something you do not have, and far less
+                   useful once you have all six.
+
+     Pity is tracked PER BANNER (`pityKey`), which is the behaviour every
+     gacha player expects and checks for. Sharing one counter would let a
+     player build 79 pulls of pity on one banner and cash it in on the
+     other, which is both exploitable and not what the screen implies.
+     ------------------------------------------------------------ */
+
+  const BANNERS = {
+    signal: {
+      id: 'signal',
+      name: 'OPEN INDEX',
+      tagline: 'Everything the archive will admit to holding.',
+      pityKey: 'pity',
+      hasFeatured: true,
+      /* null pool = every non-deep Echo */
+      pool: null,
+      base5: 0.005,
+      softAt: 65,
+      pityAt: 80
+    },
+    deep: {
+      id: 'deep',
+      name: 'DEEP INDEX',
+      tagline: 'Drafts, caches and versions that were never shipped. ' +
+               'Nothing in the world drops these.',
+      pityKey: 'pityDeep',
+      hasFeatured: false,
+      pool: ALL_IDS.filter(id => ECHOES[id].deep),
+      base5: 0.010,
+      softAt: 45,
+      pityAt: 60
+    }
+  };
+
+  const BANNER_IDS = Object.keys(BANNERS);
+
+  function banner(id) { return BANNERS[id] || BANNERS.signal; }
+
+  /** The ids a given banner can actually produce. */
+  function poolFor(bannerId) {
+    const b = banner(bannerId);
+    return b.pool || ALL_IDS.filter(id => !ECHOES[id].deep);
+  }
+
   return {
     ECHOES, STARS, ALL_IDS, BOND_MAX,
-    get, rarity, fromEnemy, isExclusive, stats, auraOf, pullTable
+    get, rarity, fromEnemy, isExclusive, stats, auraOf, pullTable,
+    featured, featuredEndsIn, FEATURED_POOL, FEATURED_RATE,
+    BANNERS, BANNER_IDS, banner, poolFor
   };
 })();

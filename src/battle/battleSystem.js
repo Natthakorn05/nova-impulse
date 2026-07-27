@@ -181,7 +181,7 @@ NI.battle = (function () {
      Combatant construction
      ============================================================ */
 
-  function makeAlly(member, side) {
+  function makeAlly(member, side, isLead) {
     const stats = buildStats(member);
     return {
       uid: member.id,
@@ -196,6 +196,8 @@ NI.battle = (function () {
       mp: member.mp != null ? Math.min(member.mp, stats.mp) : stats.mp,
       maxMp: stats.mp,
       skills: skillsFor(member),
+      /* Lead trait — only for the controlled lead. See create(). */
+      trait: isLead ? ((NI.characters.traitOf(member.id) || {}).id || null) : null,
       statuses: [], buffs: [], cooldowns: {},
       shield: 0, guarding: false, alive: true, actedThisRound: false
     };
@@ -365,6 +367,25 @@ NI.battle = (function () {
       raw *= skill.bonusVs.mult;
     }
 
+    /* Read Ahead — Kirito hits harder into a fight that has already been
+       set up. Any status counts, so it pays off whether the setup came from
+       him, the companion or the Echo, which keeps it from being a tax on
+       one specific class. */
+    if (attacker.trait === 'read_ahead' && (defender.statuses || []).length) {
+      raw *= 1.20;
+    }
+
+    /* Called It — Masha's window, granted by checkLeadTriggers below.
+
+       25%, not the 15% this started at. Measured across 500 runs per class,
+       Read Ahead put Kirito 4-7 points of boss clear ahead on every chapter,
+       because "any status is on the target" is true most turns while this is
+       one window per fight. A trait that is strictly worse is not a
+       playstyle, it is a trap, so the window pays much more while it lasts. */
+    if (attacker.trait === 'called_it' && attacker.buffs.some(b => b.calledIt)) {
+      raw *= 1.25;
+    }
+
     /* Crit */
     const critChance = (eff(attacker, 'crit') + (skill.critBonus || 0)) / 100;
     const crit = skill.alwaysCrit || roll(critChance);
@@ -428,7 +449,18 @@ NI.battle = (function () {
       : NI.enemies.encounter(encounterId);
     if (!enc) throw new Error('Unknown encounter: ' + encounterId);
 
-    const allies = party.map(m => makeAlly(m, 'party'));
+    /* Only the FIRST party member carries a lead trait, and that is the whole
+       mechanism behind the two paths differing.
+
+       Both leads are in the party on every route — you always have Kirito and
+       Masha — so granting the trait by character id would light both of them
+       up in every run and the two playthroughs would be mechanically
+       identical again, which is the thing this was built to fix. Slot 0 is
+       the lead the player actually controls (freshState builds the party that
+       way), so the trait is a property of WHO YOU ARE, not who is standing
+       next to you. Your read on the fight is yours; the companion is just as
+       capable and does not get your insight. */
+    const allies = party.map((m, i) => makeAlly(m, 'party', i === 0));
     const foes = enc.foes.map((id, i) => makeFoe(id, i, enc.scale));
 
     /* Echo joins as a third body, and its aura buffs the two real members.
@@ -803,11 +835,40 @@ NI.battle = (function () {
      *   { done: true }     -> battle finished
      * Enemy turns resolve automatically and push events.
      */
+    /**
+     * Called It — fires once per battle, the first time anyone on the party
+     * side is under 40% HP.
+     *
+     * Checked here rather than inside applyDamage because HP falls in a
+     * dozen places — skills, burn ticks, thorns, recoil, the Echo taking a
+     * hit — and a trigger wired into only some of them would work in testing
+     * and silently miss in play. One check per turn catches every route to
+     * the same state.
+     */
+    function checkLeadTriggers() {
+      const masha = B.allies.find(a => a.trait === 'called_it' && a.alive);
+      if (!masha || B.calledIt) return;
+
+      /* Half health, not 40%. At the tighter threshold the trait simply never
+         fired in the fights it was designed for — an easy fight ends before
+         anyone is hurt, and a losing one goes from fine to over too fast to
+         collect on it. */
+      const hurt = B.allies.some(a => a.alive && a.hp / Math.max(1, a.maxHp) < 0.50);
+      if (!hurt) return;
+
+      B.calledIt = true;
+      /* +1 because upkeep decrements at the start of the holder's own turn,
+         which is the same convention every skill buff uses. */
+      masha.buffs.push({ calledIt: true, spd: 8, turns: 4 });
+      emit('buff', { uid: masha.uid, name: masha.name, label: 'Called It' });
+    }
+
     function advance() {
       if (B.over) return { done: true };
 
       while (true) {
         if (!B.queue.length) startRound();
+        checkLeadTriggers();
 
         /* skip dead/absent units left in the queue */
         let uid = B.queue.shift();

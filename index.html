@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>NOVA IMPULSE</title>
-<link rel="stylesheet" href="styles/main.css?v=1bef7170">
+<link rel="stylesheet" href="styles/main.css?v=42a1d1c3">
 <link rel="stylesheet" href="styles/battle.css?v=099fa2c8">
 </head>
 <body>
@@ -185,11 +185,54 @@
       <div class="hud-left"><span class="hud-chapter">RESONANCE SUMMON</span></div>
       <div class="hud-right"><button class="btn btn-ghost btn-sm" id="sm-back">BACK</button></div>
     </header>
-    <div class="sm-wrap">
-      <div class="nx-stats" id="sm-meta"></div>
-      <div class="sm-result" id="sm-result"></div>
-      <div class="panel-actions">
-        <button class="btn btn-primary" id="sm-pull">SUMMON</button>
+    <!-- Layer 1: the world. Purely decorative, drawn in CSS. -->
+    <div class="sm-bg" aria-hidden="true">
+      <span class="sm-bg-grid"></span>
+      <span class="sm-bg-scan"></span>
+      <span class="sm-motes"></span>
+    </div>
+
+    <div class="sm-stage">
+      <div class="sm-tabs" id="sm-tabs"></div>
+
+      <!-- Layer 2: the featured Echo -->
+      <div class="sm-banner" id="sm-banner"></div>
+
+      <!-- Layer 3: the interface -->
+      <div class="sm-panel">
+        <div class="sm-pity" id="sm-pity"></div>
+        <div class="sm-actions">
+          <button class="btn sm-btn" id="sm-pull">
+            <span class="sm-btn-label">SUMMON ×1</span>
+            <span class="sm-btn-cost" id="sm-cost1"></span>
+          </button>
+          <button class="btn sm-btn sm-btn-hero" id="sm-pull10">
+            <span class="sm-btn-label">SUMMON ×10</span>
+            <span class="sm-btn-cost" id="sm-cost10"></span>
+          </button>
+        </div>
+        <div class="sm-links">
+          <button class="btn btn-ghost btn-sm" id="sm-rates">RATES</button>
+          <button class="btn btn-ghost btn-sm" id="sm-history">HISTORY</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- The reveal takes the whole screen so nothing competes with it. -->
+    <div class="sm-seq" id="sm-seq" hidden>
+      <div class="sm-seq-fx" id="sm-seq-fx"></div>
+      <div class="sm-seq-body" id="sm-seq-body"></div>
+      <button class="btn btn-ghost btn-sm sm-skip" id="sm-skip">SKIP</button>
+    </div>
+
+    <!-- Rates / history share one sheet; only one is ever open. -->
+    <div class="sm-sheet" id="sm-sheet" hidden>
+      <div class="sm-sheet-inner">
+        <header class="sm-sheet-head">
+          <span id="sm-sheet-title"></span>
+          <button class="btn btn-ghost btn-sm" id="sm-sheet-close">CLOSE</button>
+        </header>
+        <div class="sm-sheet-body" id="sm-sheet-body"></div>
       </div>
     </div>
   </section>
@@ -254,22 +297,22 @@
 <!-- data -->
 <script src="src/data/icons.js?v=e370ae77"></script>
 <script src="src/data/classes.js?v=f9c05060"></script>
-<script src="src/data/enemies.js?v=b52badc9"></script>
-<script src="src/data/characters.js?v=df74d9d1"></script>
-<script src="src/data/echoes.js?v=f69b056e"></script>
+<script src="src/data/enemies.js?v=3226d0a6"></script>
+<script src="src/data/characters.js?v=a8164112"></script>
+<script src="src/data/echoes.js?v=fe530101"></script>
 <script src="src/data/breach.js?v=6ceba606"></script>
-<script src="src/data/collection.js?v=b21258cd"></script>
+<script src="src/data/collection.js?v=d7c99ddb"></script>
 
 <!-- art -->
-<script src="src/art/prompts.js?v=3ad778f3"></script>
+<script src="src/art/prompts.js?v=b74534a8"></script>
 <script src="src/art/artLoader.js?v=92207b36"></script>
 
 <!-- systems -->
 <script src="src/audio/sfx.js?v=4892fbf5"></script>
-<script src="src/battle/battleSystem.js?v=1c33b13a"></script>
+<script src="src/battle/battleSystem.js?v=4a057ffb"></script>
 
 <!-- chapters -->
-<script src="src/data/chapters/chapter1.js?v=8f25e7ca"></script>
+<script src="src/data/chapters/chapter1.js?v=950b8a6d"></script>
 <script src="src/data/chapters/chapter2.js?v=471d226e"></script>
 <script src="src/data/chapters/chapter3.js?v=1d15f302"></script>
 <script src="src/data/chapters/chapter4.js?v=4af8a499"></script>
@@ -287,12 +330,12 @@
 <script src="src/ui/battleStage.js?v=ef2758e0"></script>
 <script src="src/ui/battleHud.js?v=f5f9c0cf"></script>
 <script src="src/ui/skillTree.js?v=de6aede4"></script>
-<script src="src/ui/screens.js?v=9a1c0865"></script>
+<script src="src/ui/screens.js?v=134de0ee"></script>
 <script src="src/ai/companion.js?v=092c2c37"></script>
 <script src="src/ui/talk.js?v=5c7a44fb"></script>
-<script src="src/ui/endgame.js?v=e59c5439"></script>
+<script src="src/ui/endgame.js?v=49254647"></script>
 
 <!-- boot -->
-<script src="src/main.js?v=8324a5e1"></script>
+<script src="src/main.js?v=b7750f30"></script>
 </body>
 </html>

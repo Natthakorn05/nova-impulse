@@ -104,6 +104,26 @@
              'uniform background with no gradient, no shadow cast on the background' + PURE
   };
 
+  /* ------------------------------------------------------------
+     Shared Echo visual language (art guide §9)
+
+     Echoes are not twenty-odd separate creatures — they are one kind of
+     thing: a living enemy compressed down into something small enough to
+     carry. Without a stated signature the model invents a fresh mascot
+     every time, which is precisely the "collection of unrelated AI
+     images" failure the guide is written against.
+
+     Three traits, chosen because they survive being drawn at 150px in a
+     summon card: matte surfaces (so nothing turns glossy), one seam of
+     cold light (the compression showing through), and a hard facet
+     somewhere on an otherwise soft body (the enemy it used to be).
+     ------------------------------------------------------------ */
+  const ECHO_LANGUAGE =
+    'matte solid surfaces with no gloss, ' +
+    'one narrow seam of cold pale cyan light showing through the body, ' +
+    'one hard geometric faceted surface somewhere on an otherwise soft form, ' +
+    'muted restrained palette, clean anime line art, soft cel shading';
+
   const FRAMING = {
     /* "head and shoulders" + an age reads as an NSFW prompt to some content
        classifiers and gets the whole request rejected. Framing is described
@@ -121,10 +141,27 @@
        has to fight the "imposing" read the enemy sheet is built around —
        hence small, friendly, and low to the ground. Stated positively:
        asking for "not menacing" produces something menacing. */
+    /* Every Echo carries these, so the roster reads as one species rather
+       than as twenty-odd unrelated mascots. The art guide (§9) asks for a
+       shared visual language — repeated motif, one texture logic, a
+       recurring corruption — and this is it, stated once and appended to
+       both echo framings below. */
     echo:     'full body creature companion design sheet, small pet-sized creature, ' +
               'head to feet inside the frame with a margin, ' +
-              'alert friendly stance close to the ground, rounded appealing silhouette, ' +
-              'mascot proportions, nothing cropped',
+              'alert stance close to the ground, nothing cropped, ' +
+              ECHO_LANGUAGE,
+    /* The same species further down. The guide asks for a deliberate
+       progression — approachable, then strange, then unsettling — and the
+       single "mascot proportions, rounded appealing silhouette" framing
+       made that impossible: every Echo came back adorable regardless of
+       what it was supposed to be, which is exactly the drift the guide
+       complains about. Higher-rarity and late-game Echoes use this one. */
+    echoDeep: 'full body creature companion design sheet, small pet-sized creature, ' +
+              'head to feet inside the frame with a margin, ' +
+              'still and watchful stance, unsettlingly still, ' +
+              'elongated or asymmetric silhouette, quietly wrong proportions, ' +
+              'solemn and strange rather than cute, nothing cropped, ' +
+              ECHO_LANGUAGE,
     scene:    'detailed anime background painting, environment only, ' +
               'absolutely no people and no characters, cinematic wide establishing shot, ' +
               'strong atmospheric perspective and depth'

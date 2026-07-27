@@ -91,6 +91,12 @@ NI.screens = (function () {
             <span class="lc-role">${o.label}</span>
             <span class="lc-name">${me.name}</span>
             <span class="lc-desc">${me.voice}</span>
+            ${me.trait ? `
+            <span class="lc-trait">
+              <b>${me.trait.name}</b>
+              <span class="lc-trait-desc">${me.trait.desc}</span>
+              <span class="lc-trait-note">${me.trait.note}</span>
+            </span>` : ''}
             <span class="lc-plays">▸ You play ${me.name} · ${other.name} fights beside you</span>
           </span>
         </button>`;
@@ -294,10 +300,15 @@ NI.screens = (function () {
        until these existed the prose never once acknowledged either — so
        both choices were purely mechanical. classNote is keyed by the
        player's classId, mateNote by the companion's. */
+    /* `after` closes the beat BELOW the class notes. Ordering is the whole
+       reason it exists rather than being pasted onto the end of `text`: a
+       chapter-closing objective has to be the last thing on the screen, and
+       anything inside `text` renders above the class-aware lines. */
     $('vn-text').innerHTML =
         C().resolve(beat.text, path)
       + classNote(beat.classNote, state, 0)
-      + classNote(beat.mateNote,  state, 1);
+      + classNote(beat.mateNote,  state, 1)
+      + C().resolve(beat.after, path);
     revealBlocks($('vn-text'));
 
     /* choices vs next */

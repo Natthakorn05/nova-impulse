@@ -284,43 +284,105 @@ for (const r of rows) {
 }
 
 /* ------------------------------------------------------------
-   Style drift across the CAST specifically.
+   Style drift, measured per cohort.
 
-   Enemies and Echoes are allowed to be lurid — a Null Seraph should not
-   share a palette with a girl holding a notebook. The contract that has to
-   hold is that the PEOPLE read as one show, male and female alike, so the
-   cohort is the portraits and sprites and the comparison is against their
-   own median rather than against a number invented here.
+   Enemies and Echoes are allowed to be lurid relative to the CAST — a Null
+   Seraph should not share a palette with a girl holding a notebook — so
+   each cohort is compared against its own median rather than a number
+   invented here, or against the people.
+
+   This used to cover the cast only, on the assumption that monsters could
+   look like anything. That assumption was wrong in a specific way: measured
+   across all three cohorts, the medians turned out nearly identical (cast
+   sat 0.38 / enemy 0.38 / echo 0.29), so the collection genuinely IS one
+   art style — and the handful of assets breaking it were all outside the
+   cohort being checked. THE ARCHITECT sits at 0.98 saturation against a
+   0.38 median, and PRIOR BUILD at 15.7% ink against 1.9%. Both shipped,
+   both invisible, because nothing was looking at them.
    ------------------------------------------------------------ */
-const castRows = rows.filter(r => !r.missing && /_(portrait|sprite)$/.test(r.key));
-if (castRows.length >= 4) {
-  const med = (xs) => { const a = xs.slice().sort((p, q) => p - q); return a[Math.floor(a.length / 2)]; };
-  const satMed = med(castRows.map(r => r.sat));
-  const inkMed = med(castRows.map(r => r.ink));
+/* Style drift is reported separately from cutout damage, and does NOT fail
+   the run.
 
-  console.log('\ncast style — soft light-novel look (median sat ' +
-              satMed.toFixed(2) + ', ink ' + (inkMed * 100).toFixed(1) + '%)');
+   A hole punched through a sprite is objectively broken and no amount of
+   looking will make it acceptable. "This is more saturated than its family"
+   is a judgement that needs a human eye — a burning moth SHOULD be the most
+   saturated thing among the enemies. Making both hard failures would mean
+   either fixing art that is fine or, far more likely, someone eventually
+   ignoring the whole gate because it always shouts. Damage stops the build;
+   drift asks a question. */
+const drifted = [];
+
+const COHORTS = [
+  { name: 'cast',   test: k => /_(portrait|sprite)$/.test(k),
+    note: 'the people have to read as one show' },
+  { name: 'enemy',  test: k => /^enemy_/.test(k),
+    note: 'monsters may be lurid, but as a family' },
+  { name: 'echo',   test: k => /^echo_/.test(k),
+    note: 'the collectibles need a shared visual language most of all' }
+];
+
+const med = (xs) => { const a = xs.slice().sort((p, q) => p - q); return a[Math.floor(a.length / 2)]; };
+
+/**
+ * Half-width of the acceptable band for one cohort, from its own spread.
+ *
+ * A fixed offset was the first attempt and it flagged fifteen of forty-three
+ * assets, which is not a gate — it is noise nobody reads. The reason is that
+ * the cohorts have genuinely different spreads: the cast is eleven people
+ * lit the same way, while the enemies run from a grey golem to a burning
+ * moth and are SUPPOSED to. One number cannot serve both.
+ *
+ * So the band is three median-absolute-deviations, which asks the right
+ * question — "is this asset unusual FOR ITS FAMILY" — instead of comparing
+ * every family to the tightest one. The floor stops a very uniform cohort
+ * from producing a band so narrow that ordinary variation trips it.
+ */
+function band(xs, floor) {
+  const m = med(xs);
+  const mad = med(xs.map(x => Math.abs(x - m)));
+  return Math.max(3 * mad, floor);
+}
+
+for (const cohort of COHORTS) {
+  const set = rows.filter(r => !r.missing && cohort.test(r.key));
+  if (set.length < 4) continue;
+
+  const satMed = med(set.map(r => r.sat));
+  const inkMed = med(set.map(r => r.ink));
+  const satBand = band(set.map(r => r.sat), 0.20);
+  const inkBand = band(set.map(r => r.ink), 0.055);
+
+  console.log(`\n${cohort.name} style — ${cohort.note} ` +
+              `(median sat ${satMed.toFixed(2)}, ink ${(inkMed * 100).toFixed(1)}%)`);
   console.log('asset                    sat     ink%');
   console.log('-'.repeat(42));
-  for (const r of castRows) {
+  for (const r of set) {
+    const off = r.sat > satMed + satBand || r.ink > inkMed + inkBand ? '  <--' : '';
     console.log(r.key.padEnd(25) + r.sat.toFixed(2).padStart(4) +
-                (r.ink * 100).toFixed(1).padStart(9));
+                (r.ink * 100).toFixed(1).padStart(9) + off);
   }
 
-  /* Generous bands. The point is to catch a member of the cast rendered in a
-     different style from the rest, not to police individual palettes — a
-     redhead in a red jacket is legitimately more saturated than a girl in a
-     cream cardigan. */
-  for (const r of castRows) {
-    if (r.sat > satMed + 0.20) {
-      flagged.push(`${r.key}: saturation ${r.sat.toFixed(2)} vs cast median ${satMed.toFixed(2)} — ` +
-                   `reads more vivid than the rest of the cast, check it is the same style`);
+  /* The point is to catch one asset rendered in a different style from its
+     family, not to police individual palettes — a redhead in a red jacket is
+     legitimately more saturated than a girl in a cream cardigan, and a fire
+     moth is legitimately more saturated than a golem. */
+  for (const r of set) {
+    if (r.sat > satMed + satBand) {
+      drifted.push(`${r.key}: saturation ${r.sat.toFixed(2)} vs ${cohort.name} median ` +
+                   `${satMed.toFixed(2)} — reads more vivid than its family, check it is the same style`);
     }
-    if (r.ink > inkMed + 0.055) {
-      flagged.push(`${r.key}: ${(r.ink * 100).toFixed(1)}% near-black vs cast median ` +
+    if (r.ink > inkMed + inkBand) {
+      drifted.push(`${r.key}: ${(r.ink * 100).toFixed(1)}% near-black vs ${cohort.name} median ` +
                    `${(inkMed * 100).toFixed(1)}% — heavy outlines, house style is thin delicate line art`);
     }
   }
+}
+
+if (drifted.length) {
+  console.log('\nSTYLE DRIFT — advisory, does not fail the run');
+  for (const d of drifted) console.log('  ~ ' + d);
+  console.log('  Look at these before deciding. Regenerate only what looks');
+  console.log('  wrong beside the rest, not everything on the list.');
 }
 
 if (flagged.length) {

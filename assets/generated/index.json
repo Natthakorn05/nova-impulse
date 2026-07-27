@@ -22,7 +22,7 @@
   "enemy_echoDuelist": "assets/generated/enemy_echoDuelist.png",
   "enemy_wardenPrime": "assets/generated/enemy_wardenPrime.png",
   "enemy_nullSeraph": "assets/generated/enemy_nullSeraph.png",
-  "_v": 1785137117233,
+  "_v": 1785167835789,
   "echo_shardling": "assets/generated/echo_shardling.png",
   "echo_wispling": "assets/generated/echo_wispling.png",
   "echo_houndling": "assets/generated/echo_houndling.png",
@@ -58,5 +58,11 @@
   "echo_strayling": "assets/generated/echo_strayling.png",
   "echo_iterling": "assets/generated/echo_iterling.png",
   "echo_scribeling": "assets/generated/echo_scribeling.png",
-  "echo_coreling": "assets/generated/echo_coreling.png"
+  "echo_coreling": "assets/generated/echo_coreling.png",
+  "echo_stubling": "assets/generated/echo_stubling.png",
+  "echo_cacheling": "assets/generated/echo_cacheling.png",
+  "echo_draftling": "assets/generated/echo_draftling.png",
+  "echo_patchling": "assets/generated/echo_patchling.png",
+  "echo_authorling": "assets/generated/echo_authorling.png",
+  "echo_endling": "assets/generated/echo_endling.png"
 }

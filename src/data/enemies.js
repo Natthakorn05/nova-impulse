@@ -385,11 +385,27 @@ NI.enemies = (function () {
       /* Deliberately not monstrous. The chapter's whole argument is that the
          thing in the room is a committee of exhausted people who could not
          stop working, so the sprite has to read as sad rather than evil. */
-      chroma: 'green',
-      art: 'a towering figure assembled from dozens of overlapping translucent amber human ' +
-           'silhouettes standing in the same place, layered like exposures of a crowd, ' +
-           'a single calm lit face forming where they overlap, robes of soft gold light, ' +
-           'weary rather than threatening',
+      /* Blue, not green. The palette below is olive, khaki and dull gold, and
+         olive is a neighbour of green — the attempt on green came back with
+         the robes shredded where the key could not tell cloth from backdrop.
+         Blue shares nothing with earth tones, which is the same reason it
+         was picked for Matikane's blonde. */
+      chroma: 'blue',
+      /* The first version asked for amber silhouettes in gold light and got
+         exactly that: a flat orange stack of shapes at 0.98 saturation with
+         no shading and no line work — a logo, not a boss, and this is the
+         chapter 9 climax. "Silhouette" is the word that did it; a silhouette
+         has no interior by definition. The crowd concept is kept, but they
+         are now people with faces and cloth, rendered in the same muted cel
+         shading as everything else. */
+      art: 'a towering robed figure made of many overlapping human forms standing in the ' +
+           'same place, each one a visible person with a face and layered cloth robes, ' +
+           'receding into one another like a crowd photographed in one long exposure, ' +
+           'one calm weary lit face at the centre looking down, muted dusty palette of ' +
+           'pale grey-gold and soft brown, restrained warm rim light only, ' +
+           'clean anime line art, soft cel shading with real shadow, ' +
+           'sorrowful and tired rather than threatening, ' +
+           'not a flat silhouette, not a glowing outline, not neon, not oversaturated',
       skills: [
         { name: 'Design Intent',  icon: 'nova',   power: 28, scaling: 'mag', target: 'allEnemies', weight: 2,
           defPierce: 0.25 },

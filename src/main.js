@@ -271,6 +271,12 @@
     } else {
       state.battlesLost++;
       note(`was killed by ${foeName}`);
+      /* Losing reads differently depending on who you are. Kirito audits the
+         fight; Masha says the number out loud. Small, but it is the moment
+         the two paths are most obviously the same scene, and the one the
+         player sees most often on a hard chapter. */
+      const led = C().lead(state.path);
+      if (led && led.onDefeat) S().toast(led.onDefeat, 'mag');
       /* Defeat is a story branch, never a game over — the system
          respawns you, which is itself a plot point. Partial XP keeps a
          losing run progressing instead of stalling permanently. */

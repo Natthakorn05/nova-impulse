@@ -198,50 +198,327 @@ NI.endgame = (function () {
      Summon
      ------------------------------------------------------------ */
 
+  /* ============================================================
+     Summon
+
+     The old screen was three stat boxes and a button, which made a pull
+     read as a transaction. This version is built around the one thing a
+     gacha screen has to do: make the moment BEFORE the result matter more
+     than the result. Everything below — the featured signal, the pity
+     bar, the tiered anticipation — exists to buy anticipation, and the
+     pull maths underneath is untouched.
+
+     Framed in the game's own fiction rather than as a shop. You are not
+     buying a creature; you are reaching into the system that trapped you
+     and pulling something out of it, and the interface behaves like
+     something that is not entirely pleased about being used.
+     ============================================================ */
+
+  let sequencing = false;   // a reveal is playing; ignore further input
+  let skipWanted = false;
+  let bannerId = 'signal';  // which pull table the screen is showing
+
   function showSummon() {
-    renderSummon('<p class="nx-empty">The shard reader is idle.</p>');
+    renderSummon();
     NI.screens.show('summon');
   }
 
-  function renderSummon(resultHtml) {
-    const p = NI.collection.progress(state);
-    const can = NI.collection.canPull(state);
-    const toPity = NI.collection.PITY_AT - (state.pity || 0);
-
-    $('sm-meta').innerHTML = `
-      <div class="nx-stat"><span>RESONANCE</span><b>${p.shards}</b></div>
-      <div class="nx-stat"><span>PER SUMMON</span><b>${NI.breach.PULL_COST}</b></div>
-      <div class="nx-stat"><span>GUARANTEED LEGENDARY IN</span><b>${Math.max(0, toPity)}</b></div>`;
-
-    $('sm-result').innerHTML = resultHtml;
-    const btn = $('sm-pull');
-    btn.disabled = !can;
-    btn.textContent = can ? 'SUMMON' : 'NOT ENOUGH RESONANCE';
+  function fmtCountdown(ms) {
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    return `${h}h ${String(m).padStart(2, '0')}m`;
   }
 
-  function doPull() {
-    const report = NI.collection.pull(state);
-    if (!report) return;
+  function renderSummon() {
+    const p = NI.collection.progress(state);
+    const cost = NI.breach.PULL_COST;
+    const b = NI.echoes.banner(bannerId);
 
-    const def = NI.echoes.get(report.id);
-    const r = NI.echoes.rarity(def.star);
-    const big = def.star === 5;
-    NI.sfx.play(big ? 'victory' : 'buff');
+    /* --- banner tabs --- */
+    $('sm-tabs').innerHTML = NI.echoes.BANNER_IDS.map(id => {
+      const bn = NI.echoes.banner(id);
+      const pool = NI.echoes.poolFor(id);
+      const have = pool.filter(x => NI.collection.owned(state, x)).length;
+      return `<button class="sm-tab${id === bannerId ? ' on' : ''}" data-banner="${id}">
+                <span class="sm-tab-name">${bn.name}</span>
+                <span class="sm-tab-sub">${have} / ${pool.length} bound</span>
+              </button>`;
+    }).join('');
+    $('sm-tabs').querySelectorAll('.sm-tab').forEach(t => {
+      t.addEventListener('click', () => {
+        if (sequencing || t.dataset.banner === bannerId) return;
+        bannerId = t.dataset.banner;
+        renderSummon();
+      });
+    });
 
-    const line = report.isNew ? 'NEW ECHO'
-               : report.maxed ? `BOND MAXED · +${report.shards} RESONANCE`
-               : `BOND ${report.bond}`;
+    /* --- the headline Echo ---
+       On a featured banner that is the current signal. On one without a
+       featured slot it is the rarest thing the pool can give you, because
+       a banner still has to be ABOUT something — an empty hero panel is
+       the plain screen this redesign replaced. */
+    let headId, tagLine, rateLine;
+    if (b.hasFeatured) {
+      headId = NI.echoes.featured();
+      tagLine = `SIGNAL FOCUS · ROTATES IN ${fmtCountdown(NI.echoes.featuredEndsIn())}`;
+      rateLine = `Half of all 5★ results resolve to this one while the signal holds.`;
+    } else {
+      const pool = NI.echoes.poolFor(b.id);
+      headId = pool.slice().sort((x, y) => NI.echoes.get(y).star - NI.echoes.get(x).star)[0];
+      tagLine = `${b.name} · ${pool.length} ECHOES · NOT FOUND IN THE WORLD`;
+      rateLine = `Double the usual 5★ rate, and a guarantee at ${b.pityAt} instead of ${NI.collection.PITY_AT}.`;
+    }
 
-    renderSummon(`
-      <div class="sm-card ${big ? 'big' : ''}" style="--rar:${r.color}">
-        <div class="sm-art">${NI.art.figure('echo_' + def.id, def.name)}</div>
-        <div class="sm-rar" style="color:${r.color}">${r.label}</div>
-        <div class="sm-name">${def.name}</div>
-        <div class="sm-line">${line}</div>
-        <p class="sm-blurb">${def.blurb}</p>
-      </div>`);
+    const feat = NI.echoes.get(headId);
+    const fr = NI.echoes.rarity(feat.star);
+    const own = NI.collection.owned(state, headId);
+
+    $('sm-banner').innerHTML = `
+      <div class="sm-feat" style="--rar:${fr.color}">
+        <div class="sm-feat-art">${NI.art.figure('echo_' + feat.id, feat.name)}</div>
+        <div class="sm-feat-info">
+          <div class="sm-feat-tag">${tagLine}</div>
+          <div class="sm-feat-rar" style="color:${fr.color}">${fr.label} · ${feat.role.toUpperCase()}</div>
+          <h2 class="sm-feat-name">${feat.name}</h2>
+          <p class="sm-feat-blurb">${feat.blurb}</p>
+          <div class="sm-feat-rate">
+            ${b.hasFeatured ? rateLine : b.tagline + ' ' + rateLine}
+            ${own ? `<b>Bound · bond ${own.bond}</b>` : '<b>Not yet bound</b>'}
+          </div>
+        </div>
+      </div>`;
+
+    /* --- pity, per banner --- */
+    const pp = NI.collection.pityOf(state, b.id);
+    const pity = pp.at, soft = pp.soft, hard = pp.hard;
+    const pct = Math.min(100, (pity / hard) * 100);
+    $('sm-pity').innerHTML = `
+      <div class="sm-res"><span>RESONANCE</span><b>${p.shards}</b></div>
+      <div class="sm-pity-bar">
+        <div class="sm-pity-head">
+          <span>LEGENDARY GUARANTEE</span>
+          <b>${pity} / ${hard}</b>
+        </div>
+        <div class="sm-pity-track">
+          <div class="sm-pity-fill${pity >= soft ? ' hot' : ''}" style="width:${pct}%"></div>
+          <div class="sm-pity-soft" style="left:${(soft / hard) * 100}%"></div>
+        </div>
+        <div class="sm-pity-note">${
+          pity >= soft
+            ? 'Signal already unstable — legendary odds are climbing every pull.'
+            : `Odds begin climbing at ${soft}. Guaranteed at ${hard}.`
+        }</div>
+      </div>`;
+
+    /* --- buttons --- */
+    const can1 = NI.collection.canPull(state);
+    const can10 = NI.collection.canPullTen(state);
+    $('sm-cost1').textContent = `${cost} RESONANCE`;
+    $('sm-cost10').textContent = `${cost * 10} RESONANCE`;
+    $('sm-pull').disabled = !can1 || sequencing;
+    $('sm-pull10').disabled = !can10 || sequencing;
+    $('sm-pull').classList.toggle('broke', !can1);
+    $('sm-pull10').classList.toggle('broke', !can10);
+  }
+
+  /* ---- the reveal ------------------------------------------------------ */
+
+  /* Waits have to be cancellable, not merely skippable.
+
+     The first version just checked the flag when each wait STARTED, which
+     meant pressing SKIP during a timer already in flight did nothing until
+     that timer expired — up to 1.5s of a button that visibly does not
+     work, on the one screen where the player is pressing it because they
+     are impatient. Now skip resolves every pending wait immediately. */
+  let pendingWaits = [];
+
+  function wait(ms) {
+    if (skipWanted) return Promise.resolve();
+    return new Promise(res => {
+      const finish = () => {
+        clearTimeout(timer);
+        pendingWaits = pendingWaits.filter(f => f !== finish);
+        res();
+      };
+      const timer = setTimeout(finish, ms);
+      pendingWaits.push(finish);
+    });
+  }
+
+  function skipNow() {
+    skipWanted = true;
+    const waiting = pendingWaits;
+    pendingWaits = [];
+    for (const finish of waiting) finish();
+  }
+
+  /** Anticipation tier from the best thing in the batch. */
+  function tierOf(reports) {
+    const best = reports.reduce((n, r) => Math.max(n, r.star), 3);
+    return best === 5 ? 'anomaly' : best === 4 ? 'unstable' : 'stable';
+  }
+
+  const TIER_TEXT = {
+    stable:   ['SIGNAL STABLE',      'The archive answers immediately. It has done this many times.'],
+    unstable: ['SIGNAL UNSTABLE',    'Something in the index is resisting. The read is taking longer than it should.'],
+    anomaly:  ['SYSTEM ANOMALY',     'This is not an index entry. Something older is answering.']
+  };
+
+  async function runSequence(reports) {
+    sequencing = true;
+    skipWanted = false;
+
+    const seq = $('sm-seq');
+    const fx = $('sm-seq-fx');
+    const body = $('sm-seq-body');
+    const tier = tierOf(reports);
+
+    seq.hidden = false;
+    seq.className = 'sm-seq tier-' + tier;
+    body.innerHTML = '';
+    fx.className = 'sm-seq-fx phase-open';
+
+    /* 1 — reaching in */
+    body.innerHTML = `<div class="sm-phase"><span class="sm-phase-line">ACCESSING SEALED INDEX</span></div>`;
+    NI.sfx.play('status');
+    await wait(900);
+
+    /* 2 — anticipation. The tier is the tell, and it is honest: an anomaly
+       reading really does mean a five-star is in the batch. A fake-out
+       would work exactly once and be resented forever after. */
+    const [title, note] = TIER_TEXT[tier];
+    fx.className = 'sm-seq-fx phase-tense';
+    body.innerHTML = `
+      <div class="sm-phase">
+        <span class="sm-phase-title">${title}</span>
+        <span class="sm-phase-note">${note}</span>
+      </div>`;
+    NI.sfx.play(tier === 'anomaly' ? 'victory' : tier === 'unstable' ? 'buff' : 'hit');
+    await wait(tier === 'anomaly' ? 1500 : tier === 'unstable' ? 1050 : 650);
+
+    /* 3 — results */
+    fx.className = 'sm-seq-fx phase-reveal';
+    body.innerHTML = `<div class="sm-grid ${reports.length > 1 ? 'many' : 'one'}"></div>`;
+    const grid = body.querySelector('.sm-grid');
+
+    for (const rep of reports) {
+      const def = NI.echoes.get(rep.id);
+      const r = NI.echoes.rarity(def.star);
+      const line = rep.isNew ? 'NEW ECHO'
+                 : rep.maxed ? `BOND MAXED · +${rep.shards} RESONANCE`
+                 : `BOND ${rep.bond}`;
+
+      const card = document.createElement('div');
+      card.className = `sm-card star-${def.star}${rep.featured ? ' featured' : ''}`;
+      card.style.setProperty('--rar', r.color);
+      card.innerHTML = `
+        <div class="sm-card-art">${NI.art.figure('echo_' + def.id, def.name)}</div>
+        <div class="sm-card-rar">${r.label}</div>
+        <div class="sm-card-name">${def.name}</div>
+        <div class="sm-card-line">${line}</div>
+        ${rep.featured ? '<div class="sm-card-flag">SIGNAL FOCUS</div>' : ''}`;
+      grid.appendChild(card);
+
+      /* Stagger so a ten-pull reads as ten events rather than one grid,
+         and pause longer on the ones worth pausing on. */
+      requestAnimationFrame(() => card.classList.add('in'));
+      if (def.star === 5) NI.sfx.play('victory');
+      else if (def.star === 4) NI.sfx.play('buff');
+      await wait(def.star === 5 ? 700 : def.star === 4 ? 300 : 150);
+    }
+
+    /* 4 — done */
+    const done = document.createElement('button');
+    done.className = 'btn btn-primary sm-done';
+    done.textContent = 'CONTINUE';
+    done.addEventListener('click', endSequence);
+    body.appendChild(done);
+    sequencing = false;
+  }
+
+  function endSequence() {
+    $('sm-seq').hidden = true;
+    sequencing = false;
+    skipWanted = false;
+    pendingWaits = [];
+    renderSummon();
+  }
+
+  async function doPull(count) {
+    if (sequencing) return;
+    const reports = count === 10
+      ? NI.collection.pullTen(state, null, null, bannerId)
+      : [NI.collection.pull(state, null, null, bannerId)].filter(Boolean);
+    if (!reports.length) return;
 
     save();
+    await runSequence(reports);
+  }
+
+  /* ---- rates / history sheets ------------------------------------------ */
+
+  function openSheet(title, html) {
+    $('sm-sheet-title').textContent = title;
+    $('sm-sheet-body').innerHTML = html;
+    $('sm-sheet').hidden = false;
+  }
+
+  function showRates() {
+    const b = NI.echoes.banner(bannerId);
+    const pool = NI.echoes.poolFor(b.id);
+    const rows = [5, 4, 3].map(star => {
+      const r = NI.echoes.rarity(star);
+      const n = pool.filter(id => NI.echoes.get(id).star === star).length;
+      const base = star === 5 ? `${(b.base5 * 100).toFixed(1)}%`
+                 : star === 4 ? `${(NI.collection.BASE_4 * 100).toFixed(0)}%`
+                 : 'remainder';
+      return `<tr>
+        <td style="color:${r.color}">${r.label}</td>
+        <td>${base}</td>
+        <td>${n} Echo${n === 1 ? '' : 'es'}</td></tr>`;
+    }).join('');
+
+    openSheet(`RATES · ${b.name}`, `
+      <table class="sm-rates">
+        <thead><tr><th>TIER</th><th>BASE RATE</th><th>POOL</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <ul class="sm-notes">
+        <li>Legendary odds begin climbing after <b>${b.softAt}</b> pulls without one,
+            and are <b>guaranteed</b> at <b>${b.pityAt}</b>.</li>
+        <li>Pity is tracked <b>separately for each banner</b>. Progress you build here
+            stays here.</li>
+        <li>A <b>${NI.echoes.rarity(4).label}</b> or better is guaranteed at least once every
+            <b>${NI.collection.PITY_4}</b> pulls, across both banners.</li>
+        ${b.hasFeatured
+          ? `<li><b>${(NI.echoes.FEATURED_RATE * 100).toFixed(0)}%</b> of legendary results resolve to the
+               current signal focus, <b>${NI.echoes.get(NI.echoes.featured()).name}</b>. This does not
+               change how often a legendary arrives — only which one it is.</li>`
+          : `<li>No featured Echo here. Every result comes from the same
+               ${pool.length}, and none of them can be found anywhere else in the game.</li>`}
+        <li>A duplicate raises bond. Past maximum bond it converts to resonance instead.</li>
+        <li>Ten-pulls are exactly ten single pulls. Nothing is held back for them.</li>
+      </ul>`);
+  }
+
+  function showHistory() {
+    const log = NI.collection.history(state);
+    if (!log.length) {
+      return openSheet('HISTORY', '<p class="nx-empty">Nothing drawn from the index yet.</p>');
+    }
+    const rows = log.map(e => {
+      const def = NI.echoes.get(e.id);
+      const r = NI.echoes.rarity(e.star || (def && def.star) || 3);
+      const when = new Date(e.at);
+      return `<tr class="star-${e.star}">
+        <td style="color:${r.color}">${r.label}</td>
+        <td>${def ? def.name : e.id}</td>
+        <td>${when.toLocaleDateString()} ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+      </tr>`;
+    }).join('');
+    openSheet('HISTORY', `
+      <p class="sm-hist-note">Last ${log.length} results, newest first.</p>
+      <table class="sm-rates sm-hist"><tbody>${rows}</tbody></table>`);
   }
 
   /* ------------------------------------------------------------
@@ -398,7 +675,15 @@ NI.endgame = (function () {
 
     $('ec-back').addEventListener('click', showHub);
     $('sm-back').addEventListener('click', showHub);
-    $('sm-pull').addEventListener('click', doPull);
+    $('sm-pull').addEventListener('click', () => doPull(1));
+    $('sm-pull10').addEventListener('click', () => doPull(10));
+    $('sm-rates').addEventListener('click', showRates);
+    $('sm-history').addEventListener('click', showHistory);
+    $('sm-sheet-close').addEventListener('click', () => { $('sm-sheet').hidden = true; });
+    /* Skip collapses every remaining wait to zero rather than jumping to the
+       end, so the results still arrive in order and nothing is missed —
+       important on a ten-pull, where the whole point is seeing what came. */
+    $('sm-skip').addEventListener('click', skipNow);
     $('br-back').addEventListener('click', showHub);
   }
 
