@@ -53,6 +53,13 @@
       chapter: 1, beat: null,
       trust: 0, flags: {},
       battlesWon: 0, battlesLost: 0,
+      /* A short rolling log of what just happened, so the cast can react to
+         it in conversation. Capped and made of our own strings — never player
+         input — because it is sent to a language model. */
+      recent: [],
+      /* Attempts per encounter, so a boss can recognise someone it has
+         already killed. */
+      attempts: {},
       /* Chosen during registration, read from chapter 1 onward. Held as its
          own field rather than a flag because every chapter branches on it and
          a flag would make "which route am I on" a search through the bag. */
@@ -203,6 +210,39 @@
 
     S().show('battle');
     NI.hud.start(battle, { onEnd: onBattleEnd });
+
+    speakBoss(beat.battle);
+  }
+
+  /**
+   * A boss says one line as the fight opens, written for this player.
+   *
+   * Counts attempts first so the boss can recognise someone it has already
+   * killed — that is the whole point of the feature, and it is the fourth
+   * attempt where it earns its keep.
+   *
+   * Fired and forgotten. The fight is already playable; if the line arrives
+   * it lands as a toast, and if it never arrives nothing is missing.
+   */
+  function speakBoss(encounterKey) {
+    const enc = NI.enemies.encounter(encounterKey);
+    if (!enc || !enc.boss) return;
+
+    const speakerId = enc.foes[0];
+    const voice = NI.enemies.voiceOf(speakerId);
+    if (!voice) return;
+
+    if (!state.attempts) state.attempts = {};
+    const attempt = (state.attempts[encounterKey] = (state.attempts[encounterKey] || 0) + 1);
+
+    const speaker = NI.enemies.get(speakerId);
+    NI.companion.bossLine(state, { name: speaker.name, voice }, attempt, '')
+      .then(res => {
+        /* The player may have already won, lost, or walked away. */
+        if (res.ok && S().currentScreen() === 'battle') {
+          S().toast(`${speaker.name}: ${res.text}`, 'amber');
+        }
+      });
   }
 
   function onBattleEnd(result) {
@@ -217,8 +257,11 @@
       m.mp = unit.mp;
     }
 
+    const foeName = (result.battle.foes[0] || {}).name || 'something';
+
     if (result.won) {
       state.battlesWon++;
+      note(`won a fight against ${foeName}`);
       awardXp(result.xp);
       /* Post-battle recovery. Without this, HP carries between 3-5 fights
          per chapter with no way back up, and one hard fight cascades into
@@ -227,6 +270,7 @@
       recover(0.30, 0.25);
     } else {
       state.battlesLost++;
+      note(`was killed by ${foeName}`);
       /* Defeat is a story branch, never a game over — the system
          respawns you, which is itself a plot point. Partial XP keeps a
          losing run progressing instead of stalling permanently. */
@@ -252,6 +296,20 @@
     }
   }
 
+  /**
+   * Record something that just happened, for the cast to react to.
+   *
+   * Deliberately writes OUR sentences about the player rather than anything
+   * the player typed: this text is sent to a language model, and the only
+   * safe way to keep player input out of a prompt is for it never to enter
+   * the log in the first place.
+   */
+  function note(line) {
+    if (!Array.isArray(state.recent)) state.recent = [];
+    state.recent.push(String(line).slice(0, 60));
+    if (state.recent.length > 6) state.recent.shift();
+  }
+
   function awardXp(amount) {
     if (!amount) return;
     const ups = NI.tree.awardXp(state, amount);
@@ -268,6 +326,20 @@
   function showHook(beat) {
     S().renderHook(C().resolve(beat.text, state.path), state);
     S().show('hook');
+
+    /* The closing archive entry, only at the end of the last chapter, and
+       only once per run. Fired without awaiting: the hook is already on
+       screen and readable, and this appends underneath it when it arrives.
+       If it never arrives the player loses nothing they knew about. */
+    if ((state.chapter || 1) >= 10 && !state.flags._epilogue) {
+      state.flags._epilogue = true;
+      save();
+      NI.companion.epilogue(state).then(res => {
+        /* Guard against a slow reply landing after the player has walked
+           off to the title screen or into the Nexus. */
+        if (res.ok && S().currentScreen() === 'hook') S().appendEpilogue(res.text);
+      });
+    }
   }
 
   /* ============================================================

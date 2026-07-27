@@ -71,7 +71,12 @@ NI.companion = (function () {
           level: me ? me.level : 1,
           chapter: state.chapter || 1,
           trust: state.trust || 0,
-          battlesWon: state.battlesWon || 0
+          battlesWon: state.battlesWon || 0,
+          /* What just happened to them. Without this the cast answers every
+             question as if the run had no history, which is what made the
+             romance routes feel weightless — Masha would discuss the Breach
+             in the abstract right after you lost a fight in it. */
+          recent: (state.recent || []).slice(-4)
         })
       });
 
@@ -111,5 +116,106 @@ NI.companion = (function () {
     }
   }
 
-  return { say, thread, clear, isAvailable, isBusy, MAX_INPUT };
+  /* ------------------------------------------------------------
+     Flavour text: the epilogue, Breach floor names, boss lines.
+
+     Separate from say() on purpose. A chat failure is worth telling the
+     player about — they typed something and deserve to know it went nowhere.
+     A flavour failure is not: the game has a perfectly good static name for
+     that floor, and a player mid-Breach must never be shown an API error or
+     made to wait on one. So this swallows everything and returns ok:false,
+     and every caller is written to carry on without it.
+     ------------------------------------------------------------ */
+
+  /** Hard ceiling on how long the game will wait before using its own text. */
+  const FLAVOUR_TIMEOUT_MS = 6000;
+
+  async function flavour(mode, payload) {
+    if (!available) return { ok: false };
+
+    /* fetch has no default timeout, and a provider that accepts the
+       connection then stalls would otherwise hang a wave transition
+       indefinitely. Same lesson the art pipeline learned the hard way. */
+    const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctl ? setTimeout(() => ctl.abort(), FLAVOUR_TIMEOUT_MS) : null;
+
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ mode, ...payload }),
+        signal: ctl ? ctl.signal : undefined
+      });
+
+      if (res.status === 404 || res.status === 405 || res.status === 501) {
+        available = false;
+        return { ok: false };
+      }
+      if (!res.ok) return { ok: false };
+
+      const data = await res.json().catch(() => ({}));
+      const text = String(data.text || '').trim();
+      return text ? { ok: true, text } : { ok: false };
+
+    } catch (err) {
+      /* An abort is a timeout, not a missing endpoint — do not disable the
+         feature for the rest of the session over one slow response. */
+      if (!(err && err.name === 'AbortError')) available = false;
+      return { ok: false };
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  /**
+   * The closing archive entry. One call per finished playthrough.
+   * @returns {Promise<{ok:boolean, text?:string}>}
+   */
+  function epilogue(state) {
+    const me = state.party && state.party[0];
+    const cls = me && NI.classes.get(me.classId);
+    return flavour('epilogue', {
+      playerName: me ? me.name : 'the player',
+      className: cls ? cls.name : 'fighter',
+      level: me ? me.level : 1,
+      lead: state.path || '',
+      route: state.route || '',
+      trust: state.trust || 0,
+      battlesWon: state.battlesWon || 0,
+      battlesLost: state.battlesLost || 0,
+      echoes: (state.echoes || []).length,
+      deepest: state.breachBest || 0,
+      /* The flags the player actually set — the game's own record of what
+         happened, already id-shaped and safe to send. */
+      notes: Object.keys(state.flags || {}).filter(k => state.flags[k]).slice(0, 8)
+    });
+  }
+
+  /** A name and one line of arrival text for a Breach floor. */
+  function breachFloor(wave, foeNames, isBoss, deepest) {
+    return flavour('breach', {
+      wave, boss: !!isBoss, deepest: deepest || 0,
+      foes: (foeNames || []).slice(0, 4)
+    });
+  }
+
+  /** One spoken line from a boss, aimed at this player. */
+  function bossLine(state, boss, attempt, moment) {
+    const me = state.party && state.party[0];
+    const cls = me && NI.classes.get(me.classId);
+    return flavour('boss', {
+      playerName: me ? me.name : 'the player',
+      className: cls ? cls.name : 'fighter',
+      level: me ? me.level : 1,
+      bossName: boss.name,
+      bossVoice: boss.voice || '',
+      attempt: attempt || 1,
+      moment: moment || ''
+    });
+  }
+
+  return {
+    say, thread, clear, isAvailable, isBusy, MAX_INPUT,
+    epilogue, breachFloor, bossLine
+  };
 })();

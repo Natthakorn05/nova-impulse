@@ -469,6 +469,28 @@ body::before {
 }
 .hook-stat b { color: var(--cyan); }
 
+/* The generated archive entry, appended under the hook when it arrives.
+   It fades in rather than appearing, because it lands a second or two after
+   the player has started reading and a hard pop would pull them off the
+   line they are on. */
+.hook-epilogue {
+  margin-top: 26px; padding: 18px 20px;
+  border: 1px solid var(--line); border-left: 2px solid var(--mag);
+  background: var(--bg-2);
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.hook-epilogue.on { opacity: 1; transform: none; }
+.hook-epilogue p {
+  margin: 0 0 .9em; font-size: 14px; line-height: 1.85;
+  color: var(--text-dim); font-style: italic;
+}
+.hook-epilogue p:last-child { margin-bottom: 0; }
+.hook-ep-tag {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em;
+  color: var(--mag); margin-bottom: 12px;
+}
+
 /* ============================================================
    System toasts (level up, skill point, class unlock)
    ============================================================ */

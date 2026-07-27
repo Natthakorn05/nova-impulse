@@ -256,6 +256,7 @@ NI.endgame = (function () {
       wave: 1,
       shards: 0,
       caught: [],
+      pending: null,      // the next floor, rolled and named in advance
       party: state.party.map(m => ({ ...m, unlocked: (m.unlocked || []).slice() }))
     };
     for (const m of run.party) {
@@ -265,11 +266,54 @@ NI.endgame = (function () {
     nextWave();
   }
 
+  /* ---- generated floor names ----
+     The Breach is endless and its floors were called "Breach 7" forever,
+     which is the whole reason the endgame felt like a spreadsheet. Each
+     floor now gets a name and a line of arrival text.
+
+     The encounter for the NEXT wave is rolled and named while the player is
+     still fighting the current one, so a wave transition never waits on the
+     network — and because the encounter is rolled up front, the text
+     describes the enemies you actually meet rather than a second roll of
+     the dice. If the relay is slow or absent the static name is used and
+     nothing about the run changes. */
+
+  function rollFloor(waveNo) {
+    const slot = { wave: waveNo, enc: NI.breach.wave(waveNo), name: null, line: null };
+    const names = slot.enc.foes
+      .map(id => (NI.enemies.get(id) || {}).name)
+      .filter(Boolean);
+
+    NI.companion.breachFloor(waveNo, names, slot.enc.boss, state.breachBest)
+      .then(res => {
+        /* The run may have ended, or the player may have left, between the
+           request and the reply. Only fill in the slot still waiting. */
+        if (!res.ok || !run || run.pending !== slot) return;
+        const lines = res.text.split('\n').map(s => s.trim()).filter(Boolean);
+        slot.name = (lines[0] || '').slice(0, 40) || null;
+        slot.line = (lines[1] || '').slice(0, 160) || null;
+      });
+
+    return slot;
+  }
+
   function nextWave() {
-    const enc = NI.breach.wave(run.wave);
+    const slot = (run.pending && run.pending.wave === run.wave)
+      ? run.pending
+      : { wave: run.wave, enc: NI.breach.wave(run.wave), name: null, line: null };
+    run.pending = null;
+
+    const enc = slot.enc;
+    if (slot.name) enc.name = slot.name;
+
     const battle = NI.battle.create(run.party, enc, NI.collection.equipped(state));
     NI.screens.show('battle');
     NI.hud.start(battle, { onEnd: onWaveEnd });
+
+    if (slot.line) NI.screens.toast(slot.line, 'cyan');
+
+    /* Name the floor below while this one is being fought. */
+    run.pending = rollFloor(run.wave + 1);
   }
 
   function onWaveEnd(result) {

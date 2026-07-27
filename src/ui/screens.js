@@ -393,10 +393,31 @@ NI.screens = (function () {
     `;
   }
 
+  /**
+   * Append the generated archive entry to the hook screen.
+   *
+   * Called only after the text has arrived, so the hook renders and is
+   * readable immediately and this drops in underneath. Nothing waits on it —
+   * if the relay never answers, the hook is simply the hook, which is what
+   * it was before this existed.
+   */
+  function appendEpilogue(text) {
+    const body = $('hook-body');
+    if (!body || !text) return;
+    const box = document.createElement('div');
+    box.className = 'hook-epilogue';
+    box.innerHTML =
+      '<div class="hook-ep-tag">ARCHIVE ENTRY</div>' +
+      text.split(/\n{2,}/).map(p =>
+        `<p>${p.replace(/[<>]/g, c => (c === '<' ? '&lt;' : '&gt;'))}</p>`).join('');
+    body.appendChild(box);
+    requestAnimationFrame(() => box.classList.add('on'));
+  }
+
   return {
     show, currentScreen, toast,
     renderTitle, renderGenderSelect, renderClassSelect, renderRouteSelect,
     renderChapterCard, renderStory, setChapterLabel, renderPartyStrip,
-    renderHook
+    renderHook, appendEpilogue
   };
 })();

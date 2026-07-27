@@ -520,8 +520,48 @@ NI.enemies = (function () {
     c10_core:    { name: 'NOVA IMPULSE',        foes: ['impulseCore'], boss: true }
   };
 
+  /* ------------------------------------------------------------
+     Boss voices — how each one speaks, for the generated line it says when
+     a fight opens. Kept as one table rather than a field on each definition
+     because only bosses have one, and a `voice: undefined` on forty pieces
+     of trash would be noise.
+
+     These are personality notes, not scripts. The line itself is written at
+     runtime against the player's class, level and how many times this boss
+     has already killed them.
+     ------------------------------------------------------------ */
+  const VOICES = {
+    siegeGolem:
+      'Siege equipment running a demolition order. Speaks in clearance ' +
+      'notices and structural assessments, and regards the player as debris ' +
+      'occupying a site.',
+    wardenPrime:
+      'The system\'s enforcement layer. Calm, procedural, faintly apologetic ' +
+      'in the way of something reading a policy it did not write. Uses ' +
+      'account and compliance language for acts of violence.',
+    continuityWarden:
+      'A custodian obsessed with keeping the world consistent. Talks about ' +
+      'the player as an inconsistency to be reconciled, and is genuinely ' +
+      'puzzled that they object to being corrected.',
+    priorBuild:
+      'A previous version of the player that got further and was archived ' +
+      'anyway. Speaks with the weary certainty of someone who already tried ' +
+      'exactly what the player is about to try. Not cruel — finished.',
+    architectProxy:
+      'Eleven exhausted developers speaking at once, in the plural, ' +
+      'apologising while continuing. Sad rather than threatening. Talks ' +
+      'about scope, deadlines, and what was meant to happen.',
+    impulseCore:
+      'The engine of the world, which has never been spoken to before and ' +
+      'is not sure it is being addressed. Enormous, slow, and curious. ' +
+      'Speaks in the first person plural about processes, not people.'
+  };
+
   function get(id) { return ENEMIES[id]; }
   function encounter(id) { return ENCOUNTERS[id]; }
+
+  /** Personality note for a boss, or '' for anything that does not speak. */
+  function voiceOf(id) { return VOICES[id] || ''; }
 
   /** Deep-ish copy so a battle instance can mutate freely. */
   function spawn(id) {
@@ -530,5 +570,5 @@ NI.enemies = (function () {
     return JSON.parse(JSON.stringify(def));
   }
 
-  return { ENEMIES, ENCOUNTERS, get, encounter, spawn };
+  return { ENEMIES, ENCOUNTERS, get, encounter, spawn, voiceOf };
 })();
