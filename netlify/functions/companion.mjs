@@ -196,10 +196,10 @@ function epiloguePrompt(ctx) {
     `You write closing entries for the archive of Nova Impulse, an anime ` +
     `isekai visual novel. Never mention being an AI or a language model.`,
     WORLD,
-    `A player has just reached the end of chapter 10. The Warden is gone and ` +
-    `the core cannot be destroyed, only finished. Nobody has logged out yet — ` +
-    `the option is there and no one has pressed it. The story does not end ` +
-    `here and your entry must not end it.`,
+    `A run has just reached its current end. The Warden is gone and the core ` +
+    `cannot be destroyed, only finished. Nobody has logged out — the option ` +
+    `is there and no one has pressed it. The story does not end here and ` +
+    `your entry must not end it.`,
     `The run: ${ctx.playerName}, a ${ctx.className}, level ${ctx.level}. ` +
     `They played as ${ctx.leadName}. The person this turned out to be about ` +
     `was ${ctx.routeName}, and their bond reached ${TRUST_STAGE(ctx.trust)}. ` +
@@ -209,10 +209,18 @@ function epiloguePrompt(ctx) {
     ctx.notes ? `Things that happened on this run: ${ctx.notes}` : '',
     `Write it as an in-world system archive entry, 150-200 words, in the ` +
     `voice of something that has watched a hundred and eleven of these and ` +
-    `is quietly tired. Refer to the player in the second person. Name ` +
-    `${ctx.routeName} at least once and mean it. Do not use headings, bullet ` +
-    `points, statistics, or numbers written as digits. End on the fact that ` +
-    `the logout prompt is still open.`
+    `is quietly tired. Plain, flat, administrative sentences — this thing ` +
+    `files reports, it does not write poetry. Refer to the player in the ` +
+    `second person. Name ${ctx.routeName} at least once and mean it. Refer ` +
+    `to the specific things that happened on this run rather than to the ` +
+    `journey in general.`,
+    `Hard rules. Never mention chapters, levels, statistics, or the game as ` +
+    `a game — this is a record written from inside the world, and the word ` +
+    `"chapter" does not exist in it. No headings and no bullet points. No ` +
+    `digits. Do not open with "Another" and do not repeat your closing ` +
+    `sentence. Avoid ornamental adjectives like enigmatic, tantalizing or ` +
+    `desperate. Last line: state plainly that the logout prompt is still ` +
+    `open and that this one has not pressed it either.`
   ].filter(Boolean).join('\n\n');
 }
 
@@ -229,8 +237,12 @@ function breachPrompt(ctx) {
     `Reply with exactly two lines and nothing else.\n` +
     `Line 1: a floor name, two to four words, no quotes, no punctuation at ` +
     `the end. It should sound like a place inside failing software.\n` +
-    `Line 2: one sentence of at most twenty words describing what the player ` +
-    `sees as they arrive. Present tense, second person.`
+    `Line 2: one sentence of twelve to twenty-two words, present tense, ` +
+    `second person, describing one concrete physical detail the player sees ` +
+    `on arriving. Name something specific — a surface, a sound, a piece of ` +
+    `broken geometry, or one of the creatures waiting. Never write a generic ` +
+    `summary like "you see a dark arena"; if the sentence would work on any ` +
+    `floor, it is wrong.`
   ].filter(Boolean).join('\n\n');
 }
 
